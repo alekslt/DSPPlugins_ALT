@@ -28,5 +28,5 @@ Launch the game and you should be all set !
 * Thanks to DSP Modding Discord
 * UnityRunTimeEditor for the stop mouse events from propagating through window
 * xiaoye97 for their LDBTool source that allowed me to understand enough GUI in the game to make my own
-
+* ragzilla for DSP_MinerOverride giving me a nice place to look for mining-related classes
 
