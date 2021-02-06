@@ -12,14 +12,12 @@ namespace DSPHelloWorld
     public partial class MineralExhaustionNotifier : BaseUnityPlugin
     {
         static bool showDialog = true;
-        static bool sendTip = false;
+        static long timeStepsSecond = 60;
+        static int checkPeriodSeconds = 5;
+        static MinerStatistics minerStatistics = new MinerStatistics();
         public static List<MiningDetail> notificationList = new List<MiningDetail>();
 
-        // Give notification on when ore patch is running low or is exhausted.
-        // https://github.com/ragzilla/DSP_Mods/blob/main/DSP_MinerOverride/MinerOverride.cs
-
-        public static UINotificationBox notificationBox = new UINotificationBox();
-
+        #region Unity Core Methods
         // Awake is called once when both the game and the plug-in are loaded
         void Awake()
         {
@@ -29,12 +27,17 @@ namespace DSPHelloWorld
         }
         void Update()
         {
-            if (showDialog)
+            if (minerStatistics.triggerNotification)
             {
-                if (Input.GetKeyDown(KeyCode.LeftControl))
-                {
-                    MinerNotificationUI.Show = !MinerNotificationUI.Show;
-                }
+                showDialog = true;
+                minerStatistics.triggerNotification = false;
+                minerStatistics.lastTriggeredNotification = GameMain.instance.timei;
+                MinerNotificationUI.Show = true;
+            }
+
+            if (Input.GetKeyDown(KeyCode.LeftControl)) {
+                showDialog = true;
+                MinerNotificationUI.Show = !MinerNotificationUI.Show;
             }
         }
 
@@ -45,44 +48,61 @@ namespace DSPHelloWorld
                 MinerNotificationUI.OnGUI();
             }
         }
+        #endregion // Unity Core Methods
 
-        [HarmonyPatch(typeof(UIGame), "_OnUpdate")]
-        public static class UIGame__OnUpdate
+        #region Harmony Patch Hooks in DSP
+
+        class MinerStatistics
         {
-            public static void Postfix(UIGame __instance)
+            class NotificationTiming { public long lastNotification; public long lastUpdated; };
+
+            Dictionary<int, NotificationTiming> notificationTimes = new Dictionary<int, NotificationTiming>();
+            public bool triggerNotification = false;
+
+            long notificationWindowLow = timeStepsSecond * 30;
+            long notificationWindowHigh = timeStepsSecond * 60;
+            long notificationPruneTime = timeStepsSecond * 30;
+            public long lastTriggeredNotification = 0;
+
+            public void updateNotificationTimes(long time)
             {
-                // notificationBox._Init(null);
-                if (sendTip == false)
+                List<int> deletionList = new List<int>();
+
+                var deltaTriggerNotification = time - lastTriggeredNotification;
+
+                foreach (var miner in notificationTimes)
                 {
-                    //for (; notificationList.Count > 0;)
+                    var deltaNotification = time - miner.Value.lastNotification;
+                    var deltaUpdated = time - miner.Value.lastUpdated;
+                    
+
+                    // Skip if we haven't waited long enough to trigger notification
+                    if (deltaNotification > notificationWindowHigh &&
+                        deltaTriggerNotification > notificationWindowHigh)
                     {
-                        //UIRealtimeTip.Popup(notificationList[0]);
-                        //notificationList.RemoveAt(0);
-                        //sendTip = true;
+                        triggerNotification = true;
                     }
-                    
-                    
+
+                    if (deltaUpdated > notificationPruneTime)
+                    {
+                        deletionList.Add(miner.Key);
+                    }
                 }
-
+                foreach (var miner in deletionList)
+                {
+                    notificationTimes.Remove(miner);
+                }
             }
-        }
 
-        [HarmonyPatch(typeof(FactorySystem), "GameTick")]
-        class FactorySystem_GameTick
-        {
-            static long lastTime = 0;
-            const long timeStepsSecond = 60;
-            public static void Postfix(long time, bool isActive, FactorySystem __instance)
+            public void onFactorySystem_GameTick(long time, FactorySystem factorySystem)
             {
-                if (time - lastTime < (timeStepsSecond * 5)) { return; }
-                lastTime = time;
 
                 //Debug.Log("Tick");
                 notificationList.Clear();
-                var factory = __instance.factory;
+                var factory = factorySystem.factory;
                 VeinData[] veinPool = factory.veinPool;
 
-                var minerPool = __instance.minerPool;
+                var minerPool = factorySystem.minerPool;
 
                 PowerSystem powerSystem = factory.powerSystem;
                 float[] networkServes = powerSystem.networkServes;
@@ -96,78 +116,102 @@ namespace DSPHelloWorld
                 FactoryProductionStat factoryProductionStat = statistics.production.factoryStatPool[factory.index];
                 int[] productRegister = factoryProductionStat.productRegister;
 
-                for (int i = 1; i < __instance.minerCursor; i++)
+                for (int i = 1; i < factorySystem.minerCursor; i++)
                 {
-                    if (__instance.minerPool[i].id == i)
+                    if (factorySystem.minerPool[i].id == i)
                     {
                         int entityId = minerPool[i].entityId;
                         float num2 = networkServes[consumerPool[minerPool[i].pcId].networkId];
-                        MinerComponent_InternalUpdate(factory, veinPool, num2, miningCostRate, miningSpeedScale, productRegister, __instance.minerPool[i]);
-                        // entitySignPool[entityId].signType = ((minerPool[i].minimumVeinAmount < 1000) ? 7u : 0u);
-                        // entitySignPool[entityId].count0 = minerPool[i].minimumVeinAmount;
+                        var minerComponent = factorySystem.minerPool[i];
+                        if (MinerComponent_InternalUpdate(factory, veinPool, num2, miningCostRate, miningSpeedScale, productRegister, minerComponent))
+                        {
+                            // Entry already in list. We need to check if we should retrigger a notification
+                            if (notificationTimes.ContainsKey(minerComponent.entityId))
+                            {
+                                var delta = time - notificationTimes[minerComponent.entityId].lastNotification;
+                                notificationTimes[minerComponent.entityId].lastUpdated = time;
+                            } else
+                            {
+                                // We want to trigger almost immediately, but leave notificationWindowLow for cases where you are actively building and haven't wired up things.
+                                notificationTimes[minerComponent.entityId] = new NotificationTiming()
+                                {
+                                    lastNotification = time - notificationWindowHigh + notificationWindowLow,
+                                    lastUpdated = time
+                                };
+                            }
+                        }
                     }
                 }
             }
-        }
 
-
-        //[HarmonyPostfix, HarmonyPatch(typeof(MinerComponent), "InternalUpdate")]
-        public static void MinerComponent_InternalUpdate(PlanetFactory factory, VeinData[] veinPool, float power, float miningRate, float miningSpeed, int[] productRegister, MinerComponent __instance)
-        {
-
-            //if (!Input.GetKey(KeyCode.LeftShift))
+            public bool MinerComponent_InternalUpdate(PlanetFactory factory, VeinData[] veinPool, float power, float miningRate, float miningSpeed, int[] productRegister, MinerComponent __instance)
             {
-                /*
-                if (!VFInput.onGUI)
+                if (__instance.type != EMinerType.Vein)
                 {
-                    UICursor.SetCursor(ECursor.Delete);
+                    return false;
                 }
-                */
-                //return;
-            }
 
-            if (__instance.type != EMinerType.Vein)
-            {
-                return;
-            }
+                var plantPosition = factory.entityPool[__instance.entityId].pos;
 
-            var plantPosition = factory.entityPool[__instance.entityId].pos;
-            
-            ItemProto itemProto = LDB.items.Select(__instance.productId);
-            int vpNum = ((__instance.veinCount != 0) ? __instance.veins[__instance.currentVeinIndex] : 0);
-            VeinData veinData = veinPool[vpNum];
-            VeinProto veinProto = LDB.veins.Select((int)veinData.type);
-            
-            //string veinName = (vpNum == 0) ? "Empty" : veinData.type.ToString();
-            string veinName = veinData.type.ToString();
-            string product = veinData.type.ToString();
-            int veinAmount = 0;
-            if (__instance.veinCount > 0)
-            {
-                for (int i = 0; i < __instance.veinCount; i++)
+                ItemProto itemProto = LDB.items.Select(__instance.productId);
+                int vpNum = ((__instance.veinCount != 0) ? __instance.veins[__instance.currentVeinIndex] : 0);
+                VeinData veinData = veinPool[vpNum];
+                VeinProto veinProto = LDB.veins.Select((int)veinData.type);
+
+                //string veinName = (vpNum == 0) ? "Empty" : veinData.type.ToString();
+                string veinName = veinData.type.ToString();
+                string product = veinData.type.ToString();
+                int veinAmount = 0;
+                if (__instance.veinCount > 0)
                 {
-                    int num = __instance.veins[i];
-                    if (num > 0 && veinPool[num].id == num && veinPool[num].amount > 0)
+                    for (int i = 0; i < __instance.veinCount; i++)
                     {
-                        veinAmount += veinPool[num].amount;
+                        int num = __instance.veins[i];
+                        if (num > 0 && veinPool[num].id == num && veinPool[num].amount > 0)
+                        {
+                            veinAmount += veinPool[num].amount;
+                        }
                     }
                 }
-            }
 
-            // Debug.Log(factory.planet.displayName + " - " + __instance.entityId + ", " + veinName + ", " + __instance.workstate + ", VeinCount: " + __instance.veinCount + " VeinAmount: " + veinAmount + " | " + latlon);
+                // Debug.Log(factory.planet.displayName + " - " + __instance.entityId + ", " + veinName + ", " + __instance.workstate + ", VeinCount: " + __instance.veinCount + " VeinAmount: " + veinAmount + " | " + latlon);
 
-            if (veinAmount < 6000)
-            {
-                // notificationList.Add("Mining facility on planet " + factory.planet.displayName + " on a " + veinName + " is running low. Remaining ore: " + veinAmount + "| Product: " + product + ". Move it asap.\nPosition: " + latlon);
-                notificationList.Add(new MiningDetail() {
-                    planetName=factory.planet.displayName,
-                    signType=factory.entitySignPool[__instance.entityId].signType,
-                    veinName =veinName,
-                    veinAmount=veinAmount,
-                    plantPosition=plantPosition,
-                    factory=factory,
-                });
+                if (veinAmount < 6000)
+                {
+                    // notificationList.Add("Mining facility on planet " + factory.planet.displayName + " on a " + veinName + " is running low. Remaining ore: " + veinAmount + "| Product: " + product + ". Move it asap.\nPosition: " + latlon);
+                    notificationList.Add(new MiningDetail()
+                    {
+                        entityId = __instance.entityId,
+                        planetName = factory.planet.displayName,
+                        signType = factory.entitySignPool[__instance.entityId].signType,
+                        veinName = veinName,
+                        veinAmount = veinAmount,
+                        plantPosition = plantPosition,
+                        factory = factory,
+                    }) ;
+
+                    return true;
+                }
+                return false;
             }
         }
+
+        [HarmonyPatch(typeof(FactorySystem), "GameTick")]
+        class FactorySystem_GameTick
+        {
+            static long lastTime = 0;
+
+            public static void Postfix(long time, bool isActive, FactorySystem __instance)
+            {
+                if (time - lastTime < (timeStepsSecond * checkPeriodSeconds)) { return; }
+                lastTime = time;
+
+                minerStatistics.onFactorySystem_GameTick(time, __instance);
+                minerStatistics.updateNotificationTimes(time);
+
+            }
+        }
+
+        #endregion // Harmony Patch Hooks in DSP
     }
 }

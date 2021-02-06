@@ -22,7 +22,7 @@ Launch the game and you should be all set !
     <li>SomeKey : Toggle Miner Information Window</li>
 </ul>
 
-## Acknowlegdements
+## Acknowledgements
 
 * Readme structure heavily inspired/copied from https://raw.githubusercontent.com/Touhma/DSP_Plugins
 * Thanks to DSP Modding Discord

@@ -13,6 +13,7 @@ namespace DSPHelloWorld
             internal uint signType;
             internal PlanetFactory factory;
             internal Vector3 plantPosition;
+            internal int entityId;
         }
     }
 }
