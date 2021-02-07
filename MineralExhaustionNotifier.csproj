@@ -7,8 +7,8 @@
     <ProjectGuid>{E42F143D-6906-4B96-9A6C-8AF8EF795862}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DSPHelloWorld</RootNamespace>
-    <AssemblyName>DSPHelloWorld</AssemblyName>
+    <RootNamespace>DSPPlugins_ALT</RootNamespace>
+    <AssemblyName>MineralExhaustionNotifier</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
