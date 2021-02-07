@@ -23,9 +23,8 @@ or by pressing the hot key.
 If you have cleared out all faulty miners by default this will allow a popup notification to occur again.
 
 #### Quick Key map (configurable) : 
-<ul>
-    <li>I : Toggle Mineral Vein Information Window</li>
-</ul>
+
+* I : Toggle Mineral Vein Information Window</li>
 
 ## Screnshots
 
