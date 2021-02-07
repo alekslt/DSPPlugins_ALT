@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\Dyson Sphere Program\BepInEx\plugins\HelloWorld\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -33,20 +33,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>Libs\0Harmony.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\Libs\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>Libs\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\Libs\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>Libs\BepInEx.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\Libs\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx.Harmony">
-      <HintPath>Libs\BepInEx.Harmony.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\Libs\BepInEx.Harmony.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -55,20 +51,19 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\BepInEx\patchers\Downgrader\DowngradedAssemblies\UnityEngine.dll</HintPath>
+      <HintPath>..\Libs\UnityEngine.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\DSPGAME_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\Libs\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\DSPGAME_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>..\Libs\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\DSPGAME_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>..\Libs\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\DSPGAME_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\Libs\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -80,4 +75,9 @@
     <Compile Include="MinerNotificationUI.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>IF /I %25COMPUTERNAME%25 == BOSON (
+copy /y "$(TargetPath)" "C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\BepInEx\plugins\HelloWorld\"
+)</PostBuildEvent>
+  </PropertyGroup>
 </Project>
