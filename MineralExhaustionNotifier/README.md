@@ -29,10 +29,9 @@ If you have cleared out all faulty miners by default this will allow a popup not
 
 ## Screnshots
 
-![Notification Box](https://github.com/alekslt/DSPPlugins_ALT/blob/master/Screenshots/InfoWindow.PNG)
+![Notification Box](https://github.com/alekslt/DSPPlugins_ALT/blob/master/MineralExhaustionNotifier/Screenshots/InfoWindow.PNG)
 
-![Full screen example image](https://github.com/alekslt/DSPPlugins_ALT/blob/master/Screenshots/FullGame.PNG)
-
+![Full screen example image](https://github.com/alekslt/DSPPlugins_ALT/blob/master/MineralExhaustionNotifier/Screenshots/FullGame.PNG)
 
 ## Acknowledgements
 
