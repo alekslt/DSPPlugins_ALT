@@ -50,6 +50,7 @@ namespace DSPPlugins_ALT
                 if (minerStatistics.firstTimeNotification)
                 {
                     minerStatistics.triggerNotification = false;
+                    minerStatistics.firstTimeNotification = false;
                     minerStatistics.lastTriggeredNotification = GameMain.instance.timei;
                     MinerNotificationUI.Show = true;
                 }
