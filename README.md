@@ -7,20 +7,34 @@ folder : https://bepinex.github.io/bepinex_docs/master/articles/user_guide/insta
 
 Then Download the latest DLL of the mod : https://github.com/alekslt/DSPPlugins_ALT/releases
 
-And add it to a new subfolders (ALT) in depinex plugins folder in your game : %gamefolder%\Dyson Sphere Program\BepInEx\plugins
+And add it to a new subfolders in depinex plugins folder in your game : %gamefolder%\Dyson Sphere Program\BepInEx\plugins\DSPPlugins_ALT
 
 Launch the game and you should be all set !
+
+After launching one time there will be a config file you can edit in %gamefolder%\Dyson Sphere Program\BepInEx\net.toppe.bepinex.dsp.veinexhaustion.cfg
 
 ## How to use the Mineral Exhaustion Notifier mod ?
 
 <del>
+The plugin will periodically check the miners for an alarm (Low Power, Low Production Yield), and/or if they remaining mineral they can mine is low or none.
+
+If a miner is detected with this condition a first time notification window will pop up, but afterwards only available through the toggle button [M] on lower right,
+or by pressing the hot key.
+
+If you have cleared out all faulty miners by default this will allow a popup notification to occur again.
 </del>
 
-#### Quick Key map : 
-
+#### Quick Key map (configurable) : 
 <ul>
-    <li>SomeKey : Toggle Miner Information Window</li>
+    <li>Ctrl : Toggle Mineral Vein Information Window</li>
 </ul>
+
+## Screnshots
+
+![Notification Box](https://github.com/alekslt/DSPPlugins_ALT/blob/master/Screenshots/InfoWindow.PNG)
+
+![Full screen example image](https://github.com/alekslt/DSPPlugins_ALT/blob/master/Screenshots/FullGame.PNG)
+
 
 ## Acknowledgements
 
@@ -29,4 +43,5 @@ Launch the game and you should be all set !
 * UnityRunTimeEditor for the stop mouse events from propagating through window
 * xiaoye97 for their LDBTool source that allowed me to understand enough GUI in the game to make my own
 * ragzilla for DSP_MinerOverride giving me a nice place to look for mining-related classes
+* Forked for poking me to create the Mineral Exhaustion notification plugin.
 
