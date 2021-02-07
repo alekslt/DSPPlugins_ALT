@@ -5,15 +5,28 @@ using System.Collections.Generic;
 using HarmonyLib;
 using System.Reflection;
 
-namespace DSPHelloWorld
+namespace DSPPlugins_ALT
 {
     public static class MinerNotificationUI
     {
+        public static GUILayoutOption PlanetColWidth;
+        public static GUILayoutOption LocationColWidth;
+        public static GUILayoutOption AlarmColWidth;
+        //public static GUILayoutOption VeinIconColWidth;
+        public static GUILayoutOption VeinTypeColWidth;
+        public static GUILayoutOption VeinAmountColWidth;
+
+        public static bool HighlightButton = false;
+        public static bool ShowButton = true;
         public static bool Show;
-        private static Rect winRect = new Rect(0, 0, 700, 300);
+        private static Rect winRect = new Rect(0, 0, 460, 300);
+
         private static Vector2 sv;
-        private static GUIStyle buttonWrapperStyle;
         private static GUIStyle textAlignStyle;
+
+        private static GUIStyle menuButton;
+        private static GUIStyle menuButtonHighlighted;
+
         private static bool isInit = false;
         private static Texture2D sign_state_0;
 
@@ -30,11 +43,24 @@ namespace DSPHelloWorld
             textAlignStyle = new GUIStyle(GUI.skin.label);
             textAlignStyle.alignment = TextAnchor.MiddleLeft;
 
+            menuButton = new GUIStyle(GUI.skin.button);
+            menuButton.normal.textColor = Color.white;
+            menuButton.fontSize = 21;
+
+            menuButtonHighlighted = new GUIStyle(menuButton);
+            menuButtonHighlighted.normal.textColor = Color.red;
 
             // sign_state_0 = Resources.Load("sign-state-0") as Texture2D;
             //UIButton[] warningButtons = Traverse.Create(UIRoot.instance.optionWindow).Field("fieldname").GetValue() as UIButton[];
             // warningButtons[0].button.image.mainTexture
             //var rhc = UIRoot.instance.optionWindow.GetFieldValue<UIButton[]>("buildingWarnButtons");
+
+            PlanetColWidth = GUILayout.Width(160);
+            LocationColWidth = GUILayout.Width(80);
+            AlarmColWidth = GUILayout.Width(90);
+            //GUILayoutOption VeinIconColWidth = GUILayout.Width(50);
+            VeinTypeColWidth = GUILayout.Width(100);
+            VeinAmountColWidth = GUILayout.Width(110);
         }
 
 
@@ -42,8 +68,29 @@ namespace DSPHelloWorld
         {
             if (!isInit) { Init(); }
 
-            winRect = GUILayout.Window(55416752, winRect, WindowFunc, "Mineral Vein Miner Exhaustion Information");
-            EatInputInRect(winRect);
+            var uiGame = BGMController.instance.uiGame;
+            var shouldShowByGameState = !(uiGame.techTree.active || uiGame.dysonmap.active || uiGame.starmap.active || uiGame.escMenu.active) &&
+                DSPGame.GameDesc != null && DSPGame.IsMenuDemo == false && DSPGame.Game.running && UIGame.viewMode == EViewMode.Normal;
+
+            if (Show && shouldShowByGameState)
+            {
+                winRect = GUILayout.Window(55416753, winRect, WindowFunc, "Miner Mineral Vein Exhaustion Information");
+                EatInputInRect(winRect);
+            }
+
+            if (ShowButton && shouldShowByGameState)
+            {
+                Rect buttonWinRect = new Rect(Screen.width - 120, Screen.height - 46, 45, 45);
+                //buttonWinRect = GUILayout.Window(55416752, buttonWinRect, ButtonWindowFunc, "Mineral Vein Miner Exhaustion Button");
+                //EatInputInRect(buttonWinRect);
+                var activeStyle = HighlightButton ? menuButtonHighlighted : menuButton;
+                GUILayout.BeginArea(buttonWinRect);
+                if (GUILayout.Button("M", activeStyle, GUILayout.Width(45)))
+                {
+                    Show = !Show;
+                }
+                GUILayout.EndArea();
+            }
         }
 
         public static void Draw(PlanetFactory factory)
@@ -111,145 +158,57 @@ namespace DSPHelloWorld
             } 
         }
 
+        public static void DrawHeader()
+        {
+            GUILayout.BeginHorizontal(GUI.skin.box);
+            // GUILayout.Label($"<b>Planet</b>", textAlignStyle, PlanetColWidth);
+            GUILayout.Label($"<b>Location</b>", textAlignStyle, LocationColWidth);
+            GUILayout.Label($"<b>Alarm</b>", textAlignStyle, AlarmColWidth);
+            //GUILayout.Label($"<b>Vein</b>", textAlignStyle, VeinIconColWidth);
+            GUILayout.Label($"<b>Vein</b>", textAlignStyle, VeinTypeColWidth);
+            GUILayout.Label($"<b>Amount Left</b>", textAlignStyle, VeinAmountColWidth);
+            GUILayout.EndHorizontal();
+        }
 
         public static void WindowFunc(int id)
         {
             GUILayout.BeginArea(new Rect(winRect.width - 22f, 2f, 20f, 17f));
             if (GUILayout.Button("X"))
             {
-                //Event.current.Use();
                 Show = false;
             }
             GUILayout.EndArea();
 
-            // Size budget is 750. Divided equally in 5 = 150.
-            // PlanetCol = 350, Sum: 350
-            // Location = 200, 450
-            // Alarm Symbol = 50, 500
-            // Vein Icon = 50, 550
-            // Vein Type = 100, 600
-            // Vein Amount = 150, 750
-            GUILayoutOption PlanetColWidth = GUILayout.Width(160);
-            GUILayoutOption LocationColWidth = GUILayout.Width(80);
-            GUILayoutOption AlarmColWidth = GUILayout.Width(90);
-            //GUILayoutOption VeinIconColWidth = GUILayout.Width(50);
-            GUILayoutOption VeinTypeColWidth = GUILayout.Width(100);
-            GUILayoutOption VeinAmountColWidth = GUILayout.Width(110);
-
-
             GUILayout.BeginVertical();
-            GUILayout.BeginHorizontal(GUI.skin.box);
-            GUILayout.Label($"<b>Planet</b>", textAlignStyle, PlanetColWidth);
-            GUILayout.Label($"<b>Location</b>", textAlignStyle, LocationColWidth);
-            GUILayout.Label($"<b>Alarm</b>", textAlignStyle, AlarmColWidth);
-            //GUILayout.Label($"<b>Vein</b>", textAlignStyle, VeinIconColWidth);
-            GUILayout.Label($"<b>Vein</b>", textAlignStyle, VeinTypeColWidth);
-            GUILayout.Label($"<b>Amount Left</b>", textAlignStyle, VeinAmountColWidth);
-
-            GUILayout.EndHorizontal();
-
             sv = GUILayout.BeginScrollView(sv, GUI.skin.box);
-            
-            foreach (var item in MineralExhaustionNotifier.notificationList)
+
+            foreach (var planet in MinerStatistics.notificationList)
             {
-                string latLon = PositionToLatLon(item.plantPosition);
-
                 GUILayout.BeginHorizontal(GUI.skin.box);
-                GUILayout.Label($"{item.planetName}", textAlignStyle, PlanetColWidth);
-                GUILayout.Label($"{latLon}", textAlignStyle, LocationColWidth);
-                GUILayout.Label(SignNumToText(item.signType), textAlignStyle, AlarmColWidth);
-                //GUILayout.Label($"{item.veinName}", textAlignStyle, VeinIconColWidth);
-                GUILayout.Label($"{item.veinName}", textAlignStyle, VeinTypeColWidth);
-                GUILayout.Label($"{item.veinAmount}", textAlignStyle, VeinAmountColWidth);
+                GUILayout.Label($"<b>Planet {planet.Key}</b>", textAlignStyle, GUILayout.Width(260));
                 GUILayout.EndHorizontal();
-            }
 
+                DrawHeader();
+
+                foreach (var item in planet.Value)
+                {
+                    string latLon = PositionToLatLon(item.plantPosition);
+
+                    GUILayout.BeginHorizontal(GUI.skin.box);
+                    // GUILayout.Label($"{item.planetName}", textAlignStyle, PlanetColWidth);
+                    GUILayout.Label($"{latLon}", textAlignStyle, LocationColWidth);
+                    GUILayout.Label(SignNumToText(item.signType), textAlignStyle, AlarmColWidth);
+                    //GUILayout.Label($"{item.veinName}", textAlignStyle, VeinIconColWidth);
+                    GUILayout.Label($"{item.veinName}", textAlignStyle, VeinTypeColWidth);
+                    GUILayout.Label($"{item.veinAmount}", textAlignStyle, VeinAmountColWidth);
+                    GUILayout.EndHorizontal();
+                }
+            }
             
             
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
             GUI.DragWindow();
-            /*
-            var e = Event.current;
-
-            if ((e.type == EventType.MouseDown || e.type == EventType.MouseUp || e.type == EventType.MouseMove) && winRect.Contains(e.mousePosition))
-            {
-                Event.current.Use();
-            }
-            */
         }
     }
-
-    /*
-    public static class ProtoSetEx
-    {
-        private static Vector2 sv;
-        private static Dictionary<Type, int> selectPages = new Dictionary<Type, int>()
-        {
-            {typeof(AdvisorTipProtoSet) , 0 },
-            {typeof(AudioProtoSet) , 0 },
-            {typeof(EffectEmitterProtoSet) , 0 },
-            {typeof(ItemProtoSet) , 0 },
-            {typeof(ModelProtoSet) , 0 },
-            {typeof(PlayerProtoSet) , 0 },
-            {typeof(RecipeProtoSet) , 0 },
-            {typeof(StringProtoSet) , 0 },
-            {typeof(TechProtoSet) , 0 },
-            {typeof(ThemeProtoSet) , 0 },
-            {typeof(TutorialProtoSet) , 0 },
-            {typeof(VegeProtoSet) , 0 },
-            {typeof(VeinProtoSet) , 0 }
-        };
-
-        public static void ShowSet<T>(this ProtoSet<T> protoSet) where T : Proto
-        {
-            if (protoSet.dataArray.Length > 100)
-            {
-                GUILayout.BeginHorizontal(GUI.skin.box);
-                GUILayout.Label($"Page {selectPages[protoSet.GetType()] + 1} / {protoSet.dataArray.Length / 100 + 1}", GUILayout.Width(80));
-                if (GUILayout.Button("-", GUILayout.Width(20))) selectPages[protoSet.GetType()]--;
-                if (GUILayout.Button("+", GUILayout.Width(20))) selectPages[protoSet.GetType()]++;
-                if (selectPages[protoSet.GetType()] < 0) selectPages[protoSet.GetType()] = protoSet.dataArray.Length / 100;
-                else if (selectPages[protoSet.GetType()] > protoSet.dataArray.Length / 100) selectPages[protoSet.GetType()] = 0;
-                GUILayout.EndHorizontal();
-            }
-            GUILayout.BeginHorizontal(GUI.skin.box);
-            GUILayout.Label($"index", GUILayout.Width(40));
-            GUILayout.Label($"ID", GUILayout.Width(40));
-            GUILayout.Label($"Name");
-            GUILayout.Label($"TranslateName");
-            if (SupportsHelper.SupportsRuntimeUnityEditor)
-            {
-                GUILayout.Label($"Show Data", GUILayout.Width(100));
-            }
-            GUILayout.EndHorizontal();
-            sv = GUILayout.BeginScrollView(sv, GUI.skin.box);
-            for (int i = selectPages[protoSet.GetType()] * 100; i < Mathf.Min(selectPages[protoSet.GetType()] * 100 + 100, protoSet.dataArray.Length); i++)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label($"{i}", GUILayout.Width(40));
-                if (protoSet.dataArray[i] != null)
-                {
-                    GUILayout.Label($"{protoSet.dataArray[i].ID}", GUILayout.Width(40));
-                    GUILayout.Label($"{protoSet.dataArray[i].Name}");
-                    GUILayout.Label($"{protoSet.dataArray[i].name.Translate()}");
-                    if (SupportsHelper.SupportsRuntimeUnityEditor)
-                    {
-                        if (GUILayout.Button($"Show Data", GUILayout.Width(100)))
-                        {
-                            ShowItem item = new ShowItem(protoSet.dataArray[i], $"{protoSet.dataArray[i].GetType().Name} {protoSet.dataArray[i].name.Translate()}");
-                            RUEHelper.ShowData(item);
-                        }
-                    }
-                }
-                else
-                {
-                    GUILayout.Label("null");
-                }
-                GUILayout.EndHorizontal();
-            }
-            GUILayout.EndScrollView();
-        }
-    }
-        */
 }
