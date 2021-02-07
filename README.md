@@ -7,11 +7,11 @@ folder : https://bepinex.github.io/bepinex_docs/master/articles/user_guide/insta
 
 Then Download the latest DLL of the mod : https://github.com/alekslt/DSPPlugins_ALT/releases
 
-And add it to a new subfolders in depinex plugins folder in your game : %gamefolder%\Dyson Sphere Program\BepInEx\plugins\DSPPlugins_ALT
+And add it to a new subfolder in bepinex plugins folder under the steam game folder : %steamapps\common%\Dyson Sphere Program\BepInEx\plugins\DSPPlugins_ALT
 
 Launch the game and you should be all set !
 
-After launching one time there will be a config file you can edit in %gamefolder%\Dyson Sphere Program\BepInEx\net.toppe.bepinex.dsp.veinexhaustion.cfg
+After launching one time there will be a config file you can edit in %steamapps\common%\Dyson Sphere Program\BepInEx\net.toppe.bepinex.dsp.veinexhaustion.cfg
 
 ## How to use the Mineral Exhaustion Notifier mod ?
 
@@ -24,7 +24,7 @@ If you have cleared out all faulty miners by default this will allow a popup not
 
 #### Quick Key map (configurable) : 
 <ul>
-    <li>Ctrl : Toggle Mineral Vein Information Window</li>
+    <li>I : Toggle Mineral Vein Information Window</li>
 </ul>
 
 ## Screnshots
