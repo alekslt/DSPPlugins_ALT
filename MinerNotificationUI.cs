@@ -9,6 +9,7 @@ namespace DSPPlugins_ALT
 {
     public static class MinerNotificationUI
     {
+        private const string WindowName = "Miner Mineral Vein Exhaustion Information";
         public static GUILayoutOption PlanetColWidth;
         public static GUILayoutOption LocationColWidth;
         public static GUILayoutOption AlarmColWidth;
@@ -33,7 +34,20 @@ namespace DSPPlugins_ALT
         public static void EatInputInRect(Rect eatRect)
         {
             if (eatRect.Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
-                Input.ResetInputAxes();
+            {
+                // Ideally I want to only block mouse events from going through.
+                var isMouseInput = Input.GetMouseButton(0) || Input.GetMouseButtonDown(0) || Input.mouseScrollDelta.y != 0;
+
+                if (!isMouseInput)
+                {
+                    // UnityEngine.Debug.Log("Canceling capture due to input not being mouse");
+                    return;
+                } else
+                {
+                    Input.ResetInputAxes();
+                }
+                
+            }
         }
 
         private static void Init()
@@ -69,12 +83,12 @@ namespace DSPPlugins_ALT
             if (!isInit) { Init(); }
 
             var uiGame = BGMController.instance.uiGame;
-            var shouldShowByGameState = !(uiGame.techTree.active || uiGame.dysonmap.active || uiGame.starmap.active || uiGame.escMenu.active) &&
-                DSPGame.GameDesc != null && DSPGame.IsMenuDemo == false && DSPGame.Game.running && UIGame.viewMode == EViewMode.Normal;
+            var shouldShowByGameState = !(uiGame.techTree.active || uiGame.dysonmap.active || uiGame.starmap.active || uiGame.escMenu.active || uiGame.hideAllUI0 || uiGame.hideAllUI1) &&
+                DSPGame.GameDesc != null && DSPGame.IsMenuDemo == false && DSPGame.Game.running && (UIGame.viewMode == EViewMode.Normal || UIGame.viewMode == EViewMode.Sail);
 
             if (Show && shouldShowByGameState)
             {
-                winRect = GUILayout.Window(55416753, winRect, WindowFunc, "Miner Mineral Vein Exhaustion Information");
+                winRect = GUILayout.Window(55416753, winRect, WindowFunc, WindowName);
                 EatInputInRect(winRect);
             }
 
@@ -111,53 +125,6 @@ namespace DSPPlugins_ALT
             }
         }
 
-        public static string PositionToLatLon(Vector3 position)
-        {
-            Maths.GetLatitudeLongitude(position, out var latd, out var latf, out var logd, out var logf, out var north, out var south, out var west, out var east);
-            bool flag2 = !north && !south;
-            bool flag3 = !east && !west;
-
-
-            string lat = latd + "° " + latf + "′";
-            string lon = logd + "° " + logf + "′";
-
-            lat += (north) ? " N" : " S";
-            lon += (west) ? " W" : " E";
-
-            return lat + "\n" + lon;
-        }
-
-        public static string SignNumToText(uint signNum)
-        {
-            switch(signNum)
-            {
-                case SignData.NONE:
-                    return "";
-                case SignData.NO_CONNECTION:
-                    return "No Connection";
-                case SignData.NO_DEMAND:
-                    return "No Demand";
-                case SignData.CUT_PRODUCTION_SOON:
-                    return "Low Resource";
-                case SignData.NOT_WORKING:
-                    return "Not Working";
-                case SignData.NO_FUEL:
-                    return "No fuel";
-                case SignData.NO_RECIPE:
-                    return "No recipie";
-                case SignData.LOW_POWER:
-                    return "Low Power";
-                case SignData.NO_POWER:
-                    return "No Power";
-                case SignData.NO_POWER_CONN:
-                    return "No power connection";
-                case SignData.NEED_SETTING:
-                    return "Need settings";
-                default:
-                    return "";
-            } 
-        }
-
         public static void DrawHeader()
         {
             GUILayout.BeginHorizontal(GUI.skin.box);
@@ -192,12 +159,12 @@ namespace DSPPlugins_ALT
 
                 foreach (var item in planet.Value)
                 {
-                    string latLon = PositionToLatLon(item.plantPosition);
+                    string latLon = DSPHelper.PositionToLatLon(item.plantPosition);
 
                     GUILayout.BeginHorizontal(GUI.skin.box);
                     // GUILayout.Label($"{item.planetName}", textAlignStyle, PlanetColWidth);
                     GUILayout.Label($"{latLon}", textAlignStyle, LocationColWidth);
-                    GUILayout.Label(SignNumToText(item.signType), textAlignStyle, AlarmColWidth);
+                    GUILayout.Label(DSPHelper.SignNumToText(item.signType), textAlignStyle, AlarmColWidth);
                     //GUILayout.Label($"{item.veinName}", textAlignStyle, VeinIconColWidth);
                     GUILayout.Label($"{item.veinName}", textAlignStyle, VeinTypeColWidth);
                     GUILayout.Label($"{item.veinAmount}", textAlignStyle, VeinAmountColWidth);
@@ -209,6 +176,12 @@ namespace DSPPlugins_ALT
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
             GUI.DragWindow();
+
+            // Always close window on Escape for now
+            if (Event.current.isKey && Event.current.keyCode == KeyCode.Escape)
+            {
+                Show = false;
+            }
         }
     }
 }

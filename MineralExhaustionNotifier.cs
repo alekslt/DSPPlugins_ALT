@@ -47,8 +47,6 @@ namespace DSPPlugins_ALT
         {
             if (minerStatistics.triggerNotification)
             {
-                MinerNotificationUI.HighlightButton = true;
-
                 if (minerStatistics.firstTimeNotification)
                 {
                     minerStatistics.triggerNotification = false;

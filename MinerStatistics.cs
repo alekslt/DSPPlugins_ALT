@@ -49,6 +49,9 @@ namespace DSPPlugins_ALT
             {
                 firstTimeNotification = true;
                 MinerNotificationUI.HighlightButton = false;
+            } else
+            {
+                MinerNotificationUI.HighlightButton = true;
             }
         }
 
