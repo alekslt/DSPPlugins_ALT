@@ -15,14 +15,12 @@ After launching one time there will be a config file you can edit in %gamefolder
 
 ## How to use the Mineral Exhaustion Notifier mod ?
 
-<del>
 The plugin will periodically check the miners for an alarm (Low Power, Low Production Yield), and/or if they remaining mineral they can mine is low or none.
 
 If a miner is detected with this condition a first time notification window will pop up, but afterwards only available through the toggle button [M] on lower right,
 or by pressing the hot key.
 
 If you have cleared out all faulty miners by default this will allow a popup notification to occur again.
-</del>
 
 #### Quick Key map (configurable) : 
 <ul>
