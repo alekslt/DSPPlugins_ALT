@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -8,20 +9,36 @@ using UnityEngine;
 
 namespace DSPPlugins_ALT
 {
-    
-
     [BepInPlugin("net.toppe.bepinex.dsp.veinexhaustion", "Mineral Vein Exhaustion Plug-In", "0.5.0.0")]
     public class MineralExhaustionNotifier : BaseUnityPlugin
     {
         public static bool showDialog = true;
         public static long timeStepsSecond = 60;
-        public static int checkPeriodSeconds = 5;
+
         public static MinerStatistics minerStatistics = new MinerStatistics();
-        
+
+        public static ConfigEntry<int> CheckPeriodSeconds;
+        public static ConfigEntry<int> VeinAmountThreshold;
+        public static ConfigEntry<bool> ShowMenuButton;
+        public static ConfigEntry<KeyCode> ShowNotificationWindowHotKey;
+
+
+        void InitConfig()
+        {
+            CheckPeriodSeconds = Config.Bind("General", "CheckPeriodSeconds", 5, "How often to check for miner problems");
+            VeinAmountThreshold = Config.Bind("General", "VeinAmountThreshold", 6000, "Threshold of vein amount left to mine for adding the miner to the list");
+            ShowMenuButton = Config.Bind("General.Toggles", "ShowMenuButton", true, "Whether or not to show the menu button lower right");
+            ShowNotificationWindowHotKey = Config.Bind<KeyCode>("config", "ShowInformationWindowHotKey", KeyCode.I, "Key to press for toggling the Miner Information Window");
+
+            MinerNotificationUI.ShowButton = ShowMenuButton.Value;
+        }
+
         #region Unity Core Methods
         // Awake is called once when both the game and the plug-in are loaded
         void Awake()
         {
+            InitConfig();
+
             UnityEngine.Debug.Log("Mineral Vein Exhaustion Plugin Loaded!");
             var harmony = new Harmony("net.toppe.bepinex.dsp.veinexhaustion");
             harmony.PatchAll();
@@ -40,7 +57,7 @@ namespace DSPPlugins_ALT
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.LeftControl)) {
+            if (Input.GetKeyDown(ShowNotificationWindowHotKey.Value)) {
                 MinerNotificationUI.Show = !MinerNotificationUI.Show;
             }
         }
@@ -63,7 +80,7 @@ namespace DSPPlugins_ALT
 
             public static void Postfix(long time, GameData __instance)
             {
-                if (time - lastTime < (timeStepsSecond * checkPeriodSeconds)) { return; }
+                if (time - lastTime < (timeStepsSecond * CheckPeriodSeconds.Value)) { return; }
                 lastTime = time;
 
                 MinerStatistics.notificationList.Clear();

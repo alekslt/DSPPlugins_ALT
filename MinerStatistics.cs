@@ -26,8 +26,7 @@ namespace DSPPlugins_ALT
             {
                 var deltaNotification = time - miner.Value.lastNotification;
                 var deltaUpdated = time - miner.Value.lastUpdated;
-                    
-
+                
                 // Skip if we haven't waited long enough to trigger notification
                 if (deltaNotification > notificationWindowHigh &&
                     deltaTriggerNotification > notificationWindowHigh)
@@ -40,6 +39,7 @@ namespace DSPPlugins_ALT
                     deletionList.Add(miner.Key);
                 }
             }
+
             foreach (var miner in deletionList)
             {
                 notificationTimes.Remove(miner);
@@ -52,10 +52,22 @@ namespace DSPPlugins_ALT
             }
         }
 
+        public void prioritizeList()
+        {
+            foreach (var planet in MinerStatistics.notificationList)
+            {
+                planet.Value.Sort(delegate (MinerNotificationDetail x, MinerNotificationDetail y)
+                {
+                    if (x.veinAmount == y.veinAmount) return 0;
+                    else if (x.veinAmount < y.veinAmount) return -1;
+                    else if (x.veinAmount > y.veinAmount) return 1;
+                    return 0;
+                });
+            }
+        }
+
         public void onFactorySystem_GameTick(long time, FactorySystem factorySystem)
         {
-
-            //Debug.Log("Tick");
             var factory = factorySystem.factory;
             VeinData[] veinPool = factory.veinPool;
 
@@ -77,15 +89,14 @@ namespace DSPPlugins_ALT
             {
                 if (factorySystem.minerPool[i].id == i)
                 {
-                    int entityId = minerPool[i].entityId;
-                    float num2 = networkServes[consumerPool[minerPool[i].pcId].networkId];
                     var minerComponent = factorySystem.minerPool[i];
-                    if (MinerComponent_InternalUpdate(factory, veinPool, num2, miningCostRate, miningSpeedScale, productRegister, minerComponent))
+                    var network = networkServes[consumerPool[minerPool[i].pcId].networkId];
+
+                    if (MinerComponent_InternalUpdate(factory, veinPool, network, miningCostRate, miningSpeedScale, productRegister, minerComponent))
                     {
-                        // Entry already in list. We need to check if we should retrigger a notification
+                        // Update notificationTimes used to trigger notifications
                         if (notificationTimes.ContainsKey(minerComponent.entityId))
                         {
-                            var delta = time - notificationTimes[minerComponent.entityId].lastNotification;
                             notificationTimes[minerComponent.entityId].lastUpdated = time;
                         } else
                         {
@@ -100,55 +111,37 @@ namespace DSPPlugins_ALT
                 }
             }
         }
-        public void prioritizeList()
-        {
-            foreach (var planet in MinerStatistics.notificationList)
-            {
-                planet.Value.Sort(delegate (MinerNotificationDetail x, MinerNotificationDetail y)
-                {
-                    if (x.veinAmount == y.veinAmount) return 0;
-                    else if (x.veinAmount < y.veinAmount) return -1;
-                    else if (x.veinAmount > y.veinAmount) return 1;
-                    return 0;
-                });
-            }
-        }
 
-
-        public bool MinerComponent_InternalUpdate(PlanetFactory factory, VeinData[] veinPool, float power, float miningRate, float miningSpeed, int[] productRegister, MinerComponent __instance)
+        public bool MinerComponent_InternalUpdate(PlanetFactory factory, VeinData[] veinPool, float power, float miningRate, float miningSpeed, int[] productRegister, MinerComponent minerComponent)
         {
-            if (__instance.type != EMinerType.Vein)
+            if (minerComponent.type != EMinerType.Vein)
             {
                 return false;
             }
 
-            var plantPosition = factory.entityPool[__instance.entityId].pos;
+            var plantPosition = factory.entityPool[minerComponent.entityId].pos;
 
-            ItemProto itemProto = LDB.items.Select(__instance.productId);
-            int vpNum = ((__instance.veinCount != 0) ? __instance.veins[__instance.currentVeinIndex] : 0);
+            int vpNum = ((minerComponent.veinCount != 0) ? minerComponent.veins[minerComponent.currentVeinIndex] : 0);
             VeinData veinData = veinPool[vpNum];
-            VeinProto veinProto = LDB.veins.Select((int)veinData.type);
-
-            //string veinName = (vpNum == 0) ? "Empty" : veinData.type.ToString();
             string veinName = veinData.type.ToString();
-            string product = veinData.type.ToString();
+
             int veinAmount = 0;
-            if (__instance.veinCount > 0)
+            if (minerComponent.veinCount > 0)
             {
-                for (int i = 0; i < __instance.veinCount; i++)
+                for (int i = 0; i < minerComponent.veinCount; i++)
                 {
-                    int num = __instance.veins[i];
+                    int num = minerComponent.veins[i];
                     if (num > 0 && veinPool[num].id == num && veinPool[num].amount > 0)
                     {
                         veinAmount += veinPool[num].amount;
                     }
                 }
             }
-            var signType = factory.entitySignPool[__instance.entityId].signType;
+            var signType = factory.entitySignPool[minerComponent.entityId].signType;
 
             // Debug.Log(factory.planet.displayName + " - " + __instance.entityId + ", " + veinName + ", " + __instance.workstate + ", VeinCount: " + __instance.veinCount + " VeinAmount: " + veinAmount + " | " + latlon);
 
-            if (veinAmount < 6000 || signType != SignData.NONE)
+            if (veinAmount < MineralExhaustionNotifier.VeinAmountThreshold.Value || signType != SignData.NONE)
             {
                 if (!notificationList.ContainsKey(factory.planet.displayName))
                 {
@@ -157,9 +150,9 @@ namespace DSPPlugins_ALT
 
                 notificationList[factory.planet.displayName].Add(new MinerNotificationDetail()
                 {
-                    entityId = __instance.entityId,
+                    entityId = minerComponent.entityId,
                     planetName = factory.planet.displayName,
-                    signType = factory.entitySignPool[__instance.entityId].signType,
+                    signType = factory.entitySignPool[minerComponent.entityId].signType,
                     veinName = veinName,
                     veinAmount = veinAmount,
                     plantPosition = plantPosition,
