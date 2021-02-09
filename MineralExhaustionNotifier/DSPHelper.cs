@@ -54,5 +54,36 @@ namespace DSPPlugins_ALT
                     return "";
             }
         }
+
+        public static int SignNumToTextureIndex(uint signNum)
+        {
+            switch (signNum)
+            {
+                case SignData.NONE:
+                    return 7;
+                case SignData.NO_CONNECTION:
+                    return 8;
+                case SignData.NO_DEMAND:
+                    return 4;
+                case SignData.CUT_PRODUCTION_SOON:
+                    return 5;
+                case SignData.NOT_WORKING:
+                    return 7;
+                case SignData.NO_FUEL:
+                    return 6;
+                case SignData.NO_RECIPE:
+                    return 3;
+                case SignData.LOW_POWER:
+                    return 2;
+                case SignData.NO_POWER:
+                    return 1;
+                case SignData.NO_POWER_CONN:
+                    return 0;
+                case SignData.NEED_SETTING:
+                    return 3;
+                default:
+                    return 7;
+            }
+        }
     }
 }

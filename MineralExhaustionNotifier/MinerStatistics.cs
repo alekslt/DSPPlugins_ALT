@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace DSPPlugins_ALT
 {
@@ -140,7 +142,13 @@ namespace DSPPlugins_ALT
                     }
                 }
             }
-            var signType = factory.entitySignPool[minerComponent.entityId].signType;
+
+            var signData = factory.entitySignPool[minerComponent.entityId];
+            var signType = signData.signType;
+
+            var time = (int)(power * (float)minerComponent.speed * miningSpeed * (float)minerComponent.veinCount);
+
+            ItemProto itemProto = signData.iconId0 != 0 ? LDB.items.Select((int)signData.iconId0) : null;
 
             // Debug.Log(factory.planet.displayName + " - " + __instance.entityId + ", " + veinName + ", " + __instance.workstate + ", VeinCount: " + __instance.veinCount + " VeinAmount: " + veinAmount + " | " + latlon);
 
@@ -151,16 +159,55 @@ namespace DSPPlugins_ALT
                     notificationList.Add(factory.planet.displayName, new List<MinerNotificationDetail>());
                 }
 
+                Texture2D texture = null;
+                
+                if (itemProto != null)
+                {
+                    texture = itemProto.iconSprite.texture;
+                    veinName = itemProto.name.Translate();
+                }
+
+                string minutesToEmptyVeinTxt;
+                var miningRatePerMin = 0f;
+                if (time == 0 || veinAmount == 0 || minerComponent.period == 0)
+                {
+                    if (veinAmount == 0)
+                    {
+                        minutesToEmptyVeinTxt = "Empty";
+                    }
+                    else
+                    {
+                        minutesToEmptyVeinTxt = "Infinity";
+                    }
+
+                }
+                else
+                {
+                    var miningTimePerSec = minerComponent.period / (MineralExhaustionNotifier.timeStepsSecond);
+                    var secondsPerMiningOperation = (float)miningTimePerSec / (float)time;
+                    miningRatePerMin = 60 / secondsPerMiningOperation;
+                    var minutesToEmptyVein = (float)veinAmount / miningRatePerMin;
+                    minutesToEmptyVeinTxt = Math.Round(minutesToEmptyVein).ToString() + " min"; // .ToString("0.0") + "每分钟".Translate();
+                }
+
                 notificationList[factory.planet.displayName].Add(new MinerNotificationDetail()
                 {
                     entityId = minerComponent.entityId,
                     planetName = factory.planet.displayName,
+                    itemProto = itemProto,
                     signType = factory.entitySignPool[minerComponent.entityId].signType,
                     veinName = veinName,
                     veinAmount = veinAmount,
                     plantPosition = plantPosition,
                     factory = factory,
-                }) ;
+                    miningRate = miningRate,
+                    time = time,
+                    period = minerComponent.period,
+                    veinCount = minerComponent.veinCount,
+                    miningRatePerMin = miningRatePerMin,
+                    minutesToEmptyVeinTxt = minutesToEmptyVeinTxt,
+                    resourceTexture = texture,
+                }); ;
 
                 return true;
             }

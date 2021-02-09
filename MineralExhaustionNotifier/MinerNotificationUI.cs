@@ -13,14 +13,18 @@ namespace DSPPlugins_ALT
         public static GUILayoutOption PlanetColWidth;
         public static GUILayoutOption LocationColWidth;
         public static GUILayoutOption AlarmColWidth;
+        public static GUILayoutOption[] VeinIconLayoutOptions;
         //public static GUILayoutOption VeinIconColWidth;
+        //public static GUILayoutOption VeinIconColHeight;
         public static GUILayoutOption VeinTypeColWidth;
         public static GUILayoutOption VeinAmountColWidth;
+        public static GUILayoutOption VeinRateColWidth;
+        public static GUILayoutOption VeinETAColWidth;
 
         public static bool HighlightButton = false;
         public static bool ShowButton = true;
         public static bool Show;
-        private static Rect winRect = new Rect(0, 0, 460, 300);
+        private static Rect winRect = new Rect(0, 0, 700, 300); // 540
 
         private static Vector2 sv;
         private static GUIStyle textAlignStyle;
@@ -29,26 +33,9 @@ namespace DSPPlugins_ALT
         private static GUIStyle menuButtonHighlighted;
 
         private static bool isInit = false;
-        private static Texture2D sign_state_0;
 
-        public static void EatInputInRect(Rect eatRect)
-        {
-            if (eatRect.Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
-            {
-                // Ideally I want to only block mouse events from going through.
-                var isMouseInput = Input.GetMouseButton(0) || Input.GetMouseButtonDown(0) || Input.mouseScrollDelta.y != 0;
 
-                if (!isMouseInput)
-                {
-                    // UnityEngine.Debug.Log("Canceling capture due to input not being mouse");
-                    return;
-                } else
-                {
-                    Input.ResetInputAxes();
-                }
-                
-            }
-        }
+        private static Texture2D[] sign_state;
 
         private static void Init()
         {
@@ -64,23 +51,35 @@ namespace DSPPlugins_ALT
             menuButtonHighlighted = new GUIStyle(menuButton);
             menuButtonHighlighted.normal.textColor = Color.red;
 
-            // sign_state_0 = Resources.Load("sign-state-0") as Texture2D;
-            //UIButton[] warningButtons = Traverse.Create(UIRoot.instance.optionWindow).Field("fieldname").GetValue() as UIButton[];
-            // warningButtons[0].button.image.mainTexture
-            //var rhc = UIRoot.instance.optionWindow.GetFieldValue<UIButton[]>("buildingWarnButtons");
-
             PlanetColWidth = GUILayout.Width(160);
             LocationColWidth = GUILayout.Width(80);
-            AlarmColWidth = GUILayout.Width(90);
-            //GUILayoutOption VeinIconColWidth = GUILayout.Width(50);
-            VeinTypeColWidth = GUILayout.Width(100);
-            VeinAmountColWidth = GUILayout.Width(110);
+            AlarmColWidth = GUILayout.Width(140);
+            //VeinIconColWidth = GUILayout.Width(45);
+            VeinTypeColWidth = GUILayout.Width(135);
+            VeinAmountColWidth = GUILayout.Width(80);
+            VeinRateColWidth = GUILayout.Width(80);
+            VeinETAColWidth = GUILayout.Width(80);
+
+            VeinIconLayoutOptions = new GUILayoutOption[] { GUILayout.Height(35), GUILayout.MaxWidth(35) };
+
+            sign_state = new Texture2D[10];
+
+            for (int i=0; i<= 8; i++)
+            {
+                //Debug.Log("Loading sign-state-" + i + " - res :" + sign_state[i]);
+                sign_state[i] = Resources.Load<Texture2D>("ui/textures/sprites/icons/sign-state-"+i);
+                if (sign_state[i] == null)
+                {
+                    Debug.LogWarning("Failed Loading sign-state-" + i);
+                }
+            }
+            
         }
 
 
         public static void OnGUI()
         {
-            if (!isInit) { Init(); }
+            if (!isInit && GameMain.isRunning) { Init(); }
 
             var uiGame = BGMController.instance.uiGame;
             var shouldShowByGameState = !(uiGame.techTree.active || uiGame.dysonmap.active || uiGame.starmap.active || uiGame.escMenu.active || uiGame.hideAllUI0 || uiGame.hideAllUI1) &&
@@ -89,14 +88,12 @@ namespace DSPPlugins_ALT
             if (Show && shouldShowByGameState)
             {
                 winRect = GUILayout.Window(55416753, winRect, WindowFunc, WindowName);
-                EatInputInRect(winRect);
+                UIHelper.EatInputInRect(winRect);
             }
 
             if (ShowButton && shouldShowByGameState)
             {
                 Rect buttonWinRect = new Rect(Screen.width - 120, Screen.height - 46, 45, 45);
-                //buttonWinRect = GUILayout.Window(55416752, buttonWinRect, ButtonWindowFunc, "Mineral Vein Miner Exhaustion Button");
-                //EatInputInRect(buttonWinRect);
                 var activeStyle = HighlightButton ? menuButtonHighlighted : menuButton;
                 GUILayout.BeginArea(buttonWinRect);
                 if (GUILayout.Button("M", activeStyle, GUILayout.Width(45)))
@@ -105,35 +102,39 @@ namespace DSPPlugins_ALT
                 }
                 GUILayout.EndArea();
             }
+
+            // GUILayout.Window(55416753, new Rect(Screen.width/2, Screen.height/2, 200, 200), TestWindowFunc, "Test");
         }
 
-        public static void Draw(PlanetFactory factory)
+        public static void TestWindowFunc(int id)
         {
-            var entitySignMat = Configs.builtin.entitySignMat;
+            // iconId0 = 1006
+            var iconId0 = 1006;
+            ItemProto itemProto2 = LDB.items.Select(iconId0);
+            Debug.Log("Name: " + itemProto2.name.Translate());
+            Debug.Log("IconSprite: " + itemProto2.iconSprite);
+            Debug.Log("Text : " + itemProto2.iconSprite.texture);
 
-            bool showSign = true;
-            bool entitySignOn = true;
+            GUI.Label(new Rect(0, 0, 10, 10), itemProto2.name.Translate());
+            GUI.Box(new Rect(0, 0, 90f, 90f), string.Empty);
+            GUI.DrawTexture(new Rect(0, 0, 80f, 80f), itemProto2.iconSprite.texture);
 
-            Shader.SetGlobalFloat("_Global_ShowEntitySign", (!showSign || !entitySignOn) ? 0f : 1f);
-            // Shader.SetGlobalFloat("_Global_ShowEntityIcon", (!showIcon || !entitySignOn) ? 0f : 1f);
-            // Shader.SetGlobalInt("_EntitySignMask", buildingWarnMask);
-            if (factory.entityCursor > 1)
+            if (itemProto2 == null)
             {
-                entitySignMat.SetBuffer("_SignBuffer", factory.planet.factoryModel.entitySignBuffer);
-                entitySignMat.SetPass(0);
-                Graphics.DrawProcedural(MeshTopology.Quads, 8 * factory.entityCursor, 1);
+                return;
             }
         }
 
         public static void DrawHeader()
         {
-            GUILayout.BeginHorizontal(GUI.skin.box);
+            GUILayout.BeginHorizontal(GUI.skin.box, GUILayout.MaxHeight(45));
             // GUILayout.Label($"<b>Planet</b>", textAlignStyle, PlanetColWidth);
             GUILayout.Label($"<b>Location</b>", textAlignStyle, LocationColWidth);
             GUILayout.Label($"<b>Alarm</b>", textAlignStyle, AlarmColWidth);
-            //GUILayout.Label($"<b>Vein</b>", textAlignStyle, VeinIconColWidth);
             GUILayout.Label($"<b>Vein</b>", textAlignStyle, VeinTypeColWidth);
             GUILayout.Label($"<b>Amount Left</b>", textAlignStyle, VeinAmountColWidth);
+            GUILayout.Label($"<b>Mining Rate/min</b>", textAlignStyle, VeinRateColWidth);
+            GUILayout.Label($"<b>~Time to Empty</b>", textAlignStyle, VeinETAColWidth);
             GUILayout.EndHorizontal();
         }
 
@@ -149,6 +150,11 @@ namespace DSPPlugins_ALT
             GUILayout.BeginVertical();
             sv = GUILayout.BeginScrollView(sv, GUI.skin.box);
 
+            GUIStyle boxStyle = new GUIStyle(GUI.skin.box)
+            {
+                margin = new RectOffset(5, 0, 0, 0)
+            };
+
             foreach (var planet in MinerStatistics.notificationList)
             {
                 GUILayout.BeginHorizontal(GUI.skin.box);
@@ -161,13 +167,29 @@ namespace DSPPlugins_ALT
                 {
                     string latLon = DSPHelper.PositionToLatLon(item.plantPosition);
 
-                    GUILayout.BeginHorizontal(GUI.skin.box);
+                    var alarmSign = (item.signType != SignData.NONE) ? sign_state[DSPHelper.SignNumToTextureIndex(item.signType)] : Texture2D.blackTexture;
+                    var resourceTexture = item.resourceTexture ? item.resourceTexture : Texture2D.blackTexture;
+
+                    // Debug.Log("Drawing sign-state-" + item.signType);
+
+                    GUILayout.BeginHorizontal(boxStyle, GUILayout.MaxHeight(45));
                     // GUILayout.Label($"{item.planetName}", textAlignStyle, PlanetColWidth);
                     GUILayout.Label($"{latLon}", textAlignStyle, LocationColWidth);
-                    GUILayout.Label(DSPHelper.SignNumToText(item.signType), textAlignStyle, AlarmColWidth);
-                    //GUILayout.Label($"{item.veinName}", textAlignStyle, VeinIconColWidth);
-                    GUILayout.Label($"{item.veinName}", textAlignStyle, VeinTypeColWidth);
+
+                    GUILayout.BeginHorizontal(VeinTypeColWidth);
+                    GUILayout.Box(alarmSign, VeinIconLayoutOptions);
+                    GUILayout.Label(DSPHelper.SignNumToText(item.signType), textAlignStyle);
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.BeginHorizontal(VeinTypeColWidth);
+                    GUILayout.Box(resourceTexture, VeinIconLayoutOptions);
+                    GUILayout.Label($"{item.veinName}", textAlignStyle);
+                    GUILayout.EndHorizontal();
+
                     GUILayout.Label($"{item.veinAmount}", textAlignStyle, VeinAmountColWidth);
+                    GUILayout.Label($"{item.miningRatePerMin}", textAlignStyle, VeinRateColWidth);
+                    GUILayout.Label($"{item.minutesToEmptyVeinTxt}", textAlignStyle, VeinETAColWidth);
+
                     GUILayout.EndHorizontal();
                 }
             }

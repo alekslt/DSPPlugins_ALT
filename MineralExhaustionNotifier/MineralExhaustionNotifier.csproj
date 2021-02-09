@@ -82,6 +82,7 @@
     <Compile Include="MinerNotificationDetail.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MinerNotificationUI.cs" />
+    <Compile Include="UIHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.png">

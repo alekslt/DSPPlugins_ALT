@@ -12,5 +12,13 @@ namespace DSPPlugins_ALT
         internal PlanetFactory factory;
         internal Vector3 plantPosition;
         internal int entityId;
+        internal ItemProto itemProto;
+        internal float miningRate;
+        internal int time;
+        internal int period;
+        internal int veinCount;
+        internal float miningRatePerMin;
+        internal string minutesToEmptyVeinTxt;
+        internal Texture2D resourceTexture;
     }
 }
