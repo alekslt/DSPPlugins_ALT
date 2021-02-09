@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace DSPPlugins_ALT
 {
-    [BepInPlugin("net.toppe.bepinex.dsp.veinexhaustion", "Mineral Vein Exhaustion Plug-In", "0.4.0.0")]
+    [BepInPlugin("net.toppe.bepinex.dsp.veinexhaustion", "Mineral Vein Exhaustion Plug-In", "0.4.1.0")]
     public class MineralExhaustionNotifier : BaseUnityPlugin
     {
         public static bool showDialog = true;

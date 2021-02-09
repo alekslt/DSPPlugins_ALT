@@ -1,4 +1,12 @@
 ﻿
+## MineralExhaustionNotified v0.4.1
+
+* Fixes a nullpointer exception when starting a new game.
+
+### Commit log from 'v0.4' to 'v0.4.1' (most recent changes are listed on top):
+e18721e Fixes a NPE in onGUI check for game state. Didn't guard some variables that was not initialized under intro guide. Bumps version to 0.4.1
+
+
 ## MineralExhaustionNotified v0.4
 
 * Fixed the issue where vein type was none for completely exhausted veins.

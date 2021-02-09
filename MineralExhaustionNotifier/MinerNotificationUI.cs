@@ -92,11 +92,16 @@ namespace DSPPlugins_ALT
 
         public static void OnGUI()
         {
-            if (!isInit && GameMain.isRunning) { Init(); }
-
             var uiGame = BGMController.instance.uiGame;
-            var shouldShowByGameState = !(uiGame.techTree.active || uiGame.dysonmap.active || uiGame.starmap.active || uiGame.escMenu.active || uiGame.hideAllUI0 || uiGame.hideAllUI1) &&
-                DSPGame.GameDesc != null && DSPGame.IsMenuDemo == false && DSPGame.Game.running && (UIGame.viewMode == EViewMode.Normal || UIGame.viewMode == EViewMode.Sail);
+            var shouldShowByGameState = DSPGame.GameDesc != null && uiGame != null && uiGame.gameData != null && uiGame.guideComplete && DSPGame.IsMenuDemo == false && DSPGame.Game.running && (UIGame.viewMode == EViewMode.Normal || UIGame.viewMode == EViewMode.Sail) &&
+                !(uiGame.techTree.active || uiGame.dysonmap.active || uiGame.starmap.active || uiGame.escMenu.active || uiGame.hideAllUI0 || uiGame.hideAllUI1) && uiGame.gameMenu.active;
+
+            if (!shouldShowByGameState)
+            {
+                return;
+            }
+
+            if (!isInit && GameMain.isRunning) { Init(); }
 
             if (Show && shouldShowByGameState)
             {

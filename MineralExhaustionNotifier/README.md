@@ -36,9 +36,12 @@ If you have cleared out all faulty miners by default this will allow a popup not
 
 ### MineralExhaustionNotified v0.4
 
+* v0.4.1 - Fixes a nullpointer exception when starting a new game.
+
 * Fixed the issue where vein type was none for completely exhausted veins.
 * Added textures for the resources/veins and for the menu button.
 * Calculate estimated time until exhaustion for the veins.
+
 
 ## Verified working with game versions
 
