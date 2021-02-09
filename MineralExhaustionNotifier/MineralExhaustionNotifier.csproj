@@ -85,6 +85,9 @@
     <Compile Include="UIHelper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="changelog.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="icon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
