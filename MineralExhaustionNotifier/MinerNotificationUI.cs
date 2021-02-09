@@ -14,6 +14,8 @@ namespace DSPPlugins_ALT
         public static GUILayoutOption LocationColWidth;
         public static GUILayoutOption AlarmColWidth;
         public static GUILayoutOption[] VeinIconLayoutOptions;
+        public static GUILayoutOption[] MenuButtonLayoutOptions;
+        
         //public static GUILayoutOption VeinIconColWidth;
         //public static GUILayoutOption VeinIconColHeight;
         public static GUILayoutOption VeinTypeColWidth;
@@ -24,7 +26,7 @@ namespace DSPPlugins_ALT
         public static bool HighlightButton = false;
         public static bool ShowButton = true;
         public static bool Show;
-        private static Rect winRect = new Rect(0, 0, 700, 300); // 540
+        private static Rect winRect = new Rect(0, 0, 680, 300); // 540
 
         private static Vector2 sv;
         private static GUIStyle textAlignStyle;
@@ -36,15 +38,38 @@ namespace DSPPlugins_ALT
 
 
         private static Texture2D[] sign_state;
+        private static Texture2D menu_button_texture;
 
         private static void Init()
         {
             isInit = true;
 
+            sign_state = new Texture2D[10];
+
+            for (int i = 0; i <= 8; i++)
+            {
+                //Debug.Log("Loading sign-state-" + i + " - res :" + sign_state[i]);
+                sign_state[i] = Resources.Load<Texture2D>("ui/textures/sprites/icons/sign-state-" + i);
+                if (sign_state[i] == null)
+                {
+                    Debug.LogWarning("Failed Loading sign-state-" + i);
+                    sign_state[i] = Texture2D.blackTexture;
+                }
+            }
+
+            menu_button_texture = Resources.Load<Texture2D>("ui/textures/sprites/round-64px-border-slice");
+            if (menu_button_texture == null)
+            {
+                Debug.LogWarning("Failed Loading menu_button_texture");
+                menu_button_texture = Texture2D.blackTexture;
+            }
+
             textAlignStyle = new GUIStyle(GUI.skin.label);
             textAlignStyle.alignment = TextAnchor.MiddleLeft;
 
             menuButton = new GUIStyle(GUI.skin.button);
+            menuButton.normal.background = menuButton.hover.background = menuButton.active.background = menu_button_texture;
+            
             menuButton.normal.textColor = Color.white;
             menuButton.fontSize = 21;
 
@@ -61,19 +86,7 @@ namespace DSPPlugins_ALT
             VeinETAColWidth = GUILayout.Width(80);
 
             VeinIconLayoutOptions = new GUILayoutOption[] { GUILayout.Height(35), GUILayout.MaxWidth(35) };
-
-            sign_state = new Texture2D[10];
-
-            for (int i=0; i<= 8; i++)
-            {
-                //Debug.Log("Loading sign-state-" + i + " - res :" + sign_state[i]);
-                sign_state[i] = Resources.Load<Texture2D>("ui/textures/sprites/icons/sign-state-"+i);
-                if (sign_state[i] == null)
-                {
-                    Debug.LogWarning("Failed Loading sign-state-" + i);
-                }
-            }
-            
+            MenuButtonLayoutOptions = new GUILayoutOption[] { GUILayout.Height(45), GUILayout.MaxWidth(45) };
         }
 
 
@@ -96,7 +109,7 @@ namespace DSPPlugins_ALT
                 Rect buttonWinRect = new Rect(Screen.width - 120, Screen.height - 46, 45, 45);
                 var activeStyle = HighlightButton ? menuButtonHighlighted : menuButton;
                 GUILayout.BeginArea(buttonWinRect);
-                if (GUILayout.Button("M", activeStyle, GUILayout.Width(45)))
+                if (GUILayout.Button("M", activeStyle, MenuButtonLayoutOptions))
                 {
                     Show = !Show;
                 }
@@ -132,7 +145,7 @@ namespace DSPPlugins_ALT
             GUILayout.Label($"<b>Location</b>", textAlignStyle, LocationColWidth);
             GUILayout.Label($"<b>Alarm</b>", textAlignStyle, AlarmColWidth);
             GUILayout.Label($"<b>Vein</b>", textAlignStyle, VeinTypeColWidth);
-            GUILayout.Label($"<b>Amount Left</b>", textAlignStyle, VeinAmountColWidth);
+            GUILayout.Label($"<b>Amount \nLeft</b>", textAlignStyle, VeinAmountColWidth);
             GUILayout.Label($"<b>Mining Rate/min</b>", textAlignStyle, VeinRateColWidth);
             GUILayout.Label($"<b>~Time to Empty</b>", textAlignStyle, VeinETAColWidth);
             GUILayout.EndHorizontal();
