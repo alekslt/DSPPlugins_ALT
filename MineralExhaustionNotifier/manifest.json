@@ -1,6 +1,6 @@
 {
     "name": "MineralExhaustionNotifier",
-    "version_number": "0.3.0",
+    "version_number": "0.4.0",
     "website_url": "https://github.com/alekslt/DSPPlugins_ALT/tree/master/MineralExhaustionNotifier",
     "description": "Tracks miners with problem conditions and shows you a information window with location, problem, and more.",
     "dependencies": [

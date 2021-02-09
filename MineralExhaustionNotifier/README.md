@@ -17,20 +17,34 @@ After launching one time there will be a config file you can edit in %steamapps\
 
 The plugin will periodically check the miners for an alarm (Low Power, Low Production Yield), and/or if they remaining mineral they can mine is low or none.
 
-If a miner is detected with this condition a first time notification window will pop up, but afterwards only available through the toggle button [M] on lower right,
+If a miner is detected with this condition a first time notification window will pop up, but afterwards only available through the toggle button (M) on lower right,
 or by pressing the hot key.
 
 If you have cleared out all faulty miners by default this will allow a popup notification to occur again.
 
 #### Quick Key map (configurable) : 
 
-* I : Toggle Mineral Vein Information Window</li>
+* I : Toggle Mineral Vein Information Window
 
-## Screnshots
+## Screenshots
 
 ![Notification Box](https://raw.githubusercontent.com/alekslt/DSPPlugins_ALT/master/MineralExhaustionNotifier/Screenshots/InfoWindow.PNG)
 
 ![Full screen example image](https://raw.githubusercontent.com/alekslt/DSPPlugins_ALT/master/MineralExhaustionNotifier/Screenshots/FullGame.PNG)
+
+## Changes in last release
+
+### MineralExhaustionNotified v0.4
+
+* Fixed the issue where vein type was none for completely exhausted veins.
+* Added textures for the resources/veins and for the menu button.
+* Calculate estimated time until exhaustion for the veins.
+
+## Verified working with game versions
+
+* Dyson Sphere Project 0.6.16.5759
+* Dyson Sphere Project 0.6.15.5706
+* Dyson Sphere Project 0.6.15.5686
 
 ## Acknowledgements
 
