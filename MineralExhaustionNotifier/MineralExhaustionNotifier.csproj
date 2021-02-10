@@ -83,22 +83,33 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MinerNotificationUI.cs" />
     <Compile Include="UIHelper.cs" />
+    <Compile Include="Version.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="manifest.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>manifest.json</LastGenOutput>
+    </Content>
     <None Include="changelog.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Content Include="icon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="manifest.json">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>manifest.tt</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
     <None Include="README.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

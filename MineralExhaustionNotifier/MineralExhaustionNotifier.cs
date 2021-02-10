@@ -4,12 +4,13 @@ using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
 
 namespace DSPPlugins_ALT
 {
-    [BepInPlugin("net.toppe.bepinex.dsp.veinexhaustion", "Mineral Vein Exhaustion Plug-In", "0.4.1.0")]
+    [BepInPlugin("net.toppe.bepinex.dsp.veinexhaustion", "Mineral Vein Exhaustion Plug-In", VersionInfo.VERSION)]
     public class MineralExhaustionNotifier : BaseUnityPlugin
     {
         public static bool showDialog = true;
