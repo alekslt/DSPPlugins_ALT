@@ -1,0 +1,9 @@
+﻿{
+    "name": "UiLayoutHeightFix",
+    "version_number": "0.1.0",
+    "website_url": "https://github.com/alekslt/DSPPlugins_ALT/tree/master/UiLayoutHeightFix",
+    "description": "Fix the issue where the game overrides the UI Layout Vertical Height on save game load/restart.",
+    "dependencies": [
+        "xiaoye97-BepInEx-5.4.5"
+    ]
+}
