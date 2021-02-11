@@ -54,26 +54,7 @@ namespace DSPPlugins_ALT
 
         #region Harmony Patch Hooks in DSP
 
-        [HarmonyPatch(typeof(DSPGame), "Awake")]
-        class DSPGame_Awake
-        {
-            public static void Postfix(DSPGame __instance)
-            {
-                UnityEngine.Debug.Log("UiLayoutHeightFix - DSPGame_Awake: " + DSPGame.globalOption.uiLayoutHeight);
-            }
-        }
-
-        [HarmonyPatch(typeof(GameOption), "LoadGlobal")]
-        class GameOption_LoadGlobal
-        {
-            public static void Postfix(GameOption __instance)
-            {
-                UnityEngine.Debug.Log("UiLayoutHeightFix - GameOption.LoadGlobal : " + DSPGame.globalOption.uiLayoutHeight);
-            }
-        }
-
         [HarmonyPatch(typeof(GameOption))]
-
         class GameOption_Import
         {
             public static void OverrideLayoutHeight()
@@ -93,38 +74,7 @@ namespace DSPPlugins_ALT
             {
                 OverrideLayoutHeight();
             }
-        }
-
-
-        [HarmonyPatch(typeof(UICanvasScalerHandler))]
-        class UICanvasScalerHandler_SetCanvas
-        {
-            static int lastRes = 0;
-
-            [HarmonyPostfix(), HarmonyPatch("SetCanvas")]
-            public static void SetCanvas(UICanvasScalerHandler __instance)
-            {
-                if (UICanvasScalerHandler.uiLayoutHeight != lastRes)
-                {
-                    UnityEngine.Debug.Log("UiLayoutHeightFix - scaler: " + UICanvasScalerHandler.uiLayoutHeight);
-                    lastRes = UICanvasScalerHandler.uiLayoutHeight;
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(UIOptionWindow))]
-        class UIOptionWindow_ApplyOptions
-        {
-            [HarmonyPostfix(), HarmonyPatch("ApplyOptions")]
-            public static void ApplyOptions(UIOptionWindow __instance)
-            {
-
-                UnityEngine.Debug.Log("UiLayoutHeightFix - ApplyOptions: " + DSPGame.globalOption.uiLayoutHeight);
-
-            }
-        }
-
-        
+        }      
 
         #endregion // Harmony Patch Hooks in DSP
     }
