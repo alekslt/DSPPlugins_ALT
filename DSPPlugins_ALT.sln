@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MineralExhaustionNotifier",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{A7F4D4D4-F5BF-4099-A9A6-02A9DD44ED25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UiLayoutHeightFix", "UiLayoutHeightFix\UiLayoutHeightFix.csproj", "{B0EF0678-E1C5-4B9C-B31C-0F4B19DE9787}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UILayoutHeightFix", "UiLayoutHeightFix\UILayoutHeightFix.csproj", "{B0EF0678-E1C5-4B9C-B31C-0F4B19DE9787}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -11,9 +11,9 @@ using UnityEngine;
 namespace DSPPlugins_ALT
 {
     [BepInPlugin("net.toppe.bepinex.dsp.uilayoutheightfix", "UiLayoutHeightFix Plug-In", VersionInfo.VERSION)]
-    public class UiLayoutHeightFix : BaseUnityPlugin
+    public class UILayoutHeightFix : BaseUnityPlugin
     {
-        public static ConfigEntry<int> UiLayoutHeightConfig;
+        public static ConfigEntry<int> UILayoutHeightConfig;
         //public static ConfigEntry<int> VeinAmountThreshold;
         //public static ConfigEntry<bool> ShowMenuButton;
         //public static ConfigEntry<KeyCode> ShowNotificationWindowHotKey;
@@ -22,14 +22,14 @@ namespace DSPPlugins_ALT
 
     void InitConfig()
         {
-            UiLayoutHeightConfig = Config.Bind("General", "UiLayoutHeight", 1080, "What UiLayoutHeight should we enforce [900, 1080, 1440, 2160]");
+            UILayoutHeightConfig = Config.Bind("General", "UILayoutHeight", 1080, "What UILayoutHeight should we enforce [900, 1080, 1440, 2160]");
             //VeinAmountThreshold = Config.Bind("General", "VeinAmountThreshold", 6000, "Threshold of vein amount left to mine for adding the miner to the list");
             //ShowMenuButton = Config.Bind("General.Toggles", "ShowMenuButton", true, "Whether or not to show the menu button lower right");
             //ShowNotificationWindowHotKey = Config.Bind<KeyCode>("config", "ShowInformationWindowHotKey", KeyCode.I, "Key to press for toggling the Miner Information Window");
-            if (!ValidUiLayoutHeights.Contains(UiLayoutHeightConfig.Value))
+            if (!ValidUiLayoutHeights.Contains(UILayoutHeightConfig.Value))
             {
-                Debug.LogError("UiLayoutHeight from config file is not from the valid list of resolutions. Resetting to 900");
-                UiLayoutHeightConfig.Value = 900;
+                Debug.LogError("UILayoutHeight from config file is not from the valid list of resolutions. Resetting to 900");
+                UILayoutHeightConfig.Value = 900;
             }
         }
 
@@ -39,7 +39,7 @@ namespace DSPPlugins_ALT
         {
             InitConfig();
 
-            UnityEngine.Debug.Log("UiLayoutHeightFix Plugin Loaded!");
+            UnityEngine.Debug.Log("UILayoutHeightFix Plugin Loaded!");
             var harmony = new Harmony("net.toppe.bepinex.dsp.uilayoutheightfix");
             harmony.PatchAll();
         }
@@ -59,8 +59,8 @@ namespace DSPPlugins_ALT
         {
             public static void OverrideLayoutHeight()
             {
-                UnityEngine.Debug.Log("UiLayoutHeightFix - uiLayoutHeight Orig: " + DSPGame.globalOption.uiLayoutHeight + " Overriden to " + UiLayoutHeightConfig.Value);
-                DSPGame.globalOption.uiLayoutHeight = UiLayoutHeightConfig.Value;
+                UnityEngine.Debug.Log("UILayoutHeightFix - uiLayoutHeight Orig: " + DSPGame.globalOption.uiLayoutHeight + " Overriden to " + UILayoutHeightConfig.Value);
+                DSPGame.globalOption.uiLayoutHeight = UILayoutHeightConfig.Value;
             }
 
             [HarmonyPostfix(), HarmonyPatch("Import")]
