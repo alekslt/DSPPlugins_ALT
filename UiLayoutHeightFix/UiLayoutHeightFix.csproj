@@ -71,20 +71,23 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="icon.png">
+    <Content Include="Thunderstore\icon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="manifest.tt">
+    <Content Include="Thunderstore\manifest.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>manifest.json</LastGenOutput>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <None Include="manifest.json">
-      <DependentUpon>manifest.tt</DependentUpon>
+    <None Include="..\Shared\manifest.ttinclude">
+      <Link>Shared\manifest.ttinclude</Link>
+    </None>
+    <None Include="Thunderstore\manifest.json">
       <AutoGen>True</AutoGen>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DesignTime>True</DesignTime>
+      <DependentUpon>manifest.tt</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="README.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -93,7 +96,11 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>IF /I %25COMPUTERNAME%25 == BOSON (
-copy /y "$(TargetPath)" "C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\BepInEx\plugins\HelloWorld\"
+  copy /y "$(TargetPath)" "C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\BepInEx\plugins\DSPPlugins_ALT\"
+
+  IF /I "$(ConfigurationName)" == "Release" (
+    call $(SolutionDir)\Shared\PrepareThunderStoreRelease.cmd $(ProjectName) "$(SolutionDir)" "$(TargetDir)"
+  )
 )</PostBuildEvent>
   </PropertyGroup>
 </Project>

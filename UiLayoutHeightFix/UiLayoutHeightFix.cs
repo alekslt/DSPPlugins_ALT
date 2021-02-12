@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace DSPPlugins_ALT
 {
-    [BepInPlugin("net.toppe.bepinex.dsp.uilayoutheightfix", "UiLayoutHeightFix Plug-In", VersionInfo.VERSION)]
+    [BepInPlugin(VersionInfo.BEPINEX_FQDN_ID, "UiLayoutHeightFix Plug-In", VersionInfo.VERSION)]
     public class UILayoutHeightFix : BaseUnityPlugin
     {
         public static ConfigEntry<int> UILayoutHeightConfig;
@@ -40,7 +40,7 @@ namespace DSPPlugins_ALT
             InitConfig();
 
             UnityEngine.Debug.Log("UILayoutHeightFix Plugin Loaded!");
-            var harmony = new Harmony("net.toppe.bepinex.dsp.uilayoutheightfix");
+            var harmony = new Harmony(VersionInfo.BEPINEX_FQDN_ID);
             harmony.PatchAll();
         }
         void Update()

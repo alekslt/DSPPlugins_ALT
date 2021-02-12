@@ -86,17 +86,20 @@
     <Compile Include="Version.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="manifest.tt">
+    <Content Include="Thunderstore\manifest.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>manifest.json</LastGenOutput>
     </Content>
+    <None Include="..\shared\manifest.ttinclude">
+      <Link>Shared\manifest.ttinclude</Link>
+    </None>
     <None Include="changelog.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Content Include="icon.png">
+    <Content Include="Thunderstore\icon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="manifest.json">
+    <None Include="Thunderstore\manifest.json">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>manifest.tt</DependentUpon>
@@ -114,7 +117,11 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>IF /I %25COMPUTERNAME%25 == BOSON (
-copy /y "$(TargetPath)" "C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\BepInEx\plugins\HelloWorld\"
+  copy /y "$(TargetPath)" "C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\BepInEx\plugins\DSPPlugins_ALT\"
+
+  IF /I "$(ConfigurationName)" == "Release" (
+    call $(SolutionDir)\Shared\PrepareThunderStoreRelease.cmd $(ProjectName) "$(SolutionDir)" "$(TargetDir)"
+  )
 )</PostBuildEvent>
   </PropertyGroup>
 </Project>

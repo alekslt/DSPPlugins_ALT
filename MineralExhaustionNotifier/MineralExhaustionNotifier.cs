@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace DSPPlugins_ALT
 {
-    [BepInPlugin("net.toppe.bepinex.dsp.veinexhaustion", "Mineral Vein Exhaustion Plug-In", VersionInfo.VERSION)]
+    [BepInPlugin(VersionInfo.BEPINEX_FQDN_ID, "Mineral Vein Exhaustion Plug-In", VersionInfo.VERSION)]
     public class MineralExhaustionNotifier : BaseUnityPlugin
     {
         public static bool showDialog = true;
@@ -41,7 +41,7 @@ namespace DSPPlugins_ALT
             InitConfig();
 
             UnityEngine.Debug.Log("Mineral Vein Exhaustion Plugin Loaded!");
-            var harmony = new Harmony("net.toppe.bepinex.dsp.veinexhaustion");
+            var harmony = new Harmony(VersionInfo.BEPINEX_FQDN_ID);
             harmony.PatchAll();
         }
         void Update()

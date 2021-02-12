@@ -10,5 +10,6 @@ namespace DSPPlugins_ALT
         public const string VERSION = "0.1.0.0";
         public const string NAME = "UILayoutHeightFix";
         public const string DESCRIPTION = "Fix the issue where the game overrides the UI Layout Vertical Height on save game load/restart.";
+        public const string BEPINEX_FQDN_ID = "net.toppe.bepinex.dsp.uilayoutheightfix";
     }
 }

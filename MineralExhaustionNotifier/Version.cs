@@ -10,5 +10,6 @@ namespace DSPPlugins_ALT
         public const string VERSION = "0.4.1.0";
         public const string NAME = "MineralExhaustionNotifier";
         public const string DESCRIPTION = "Tracks miners with problem conditions and shows you a information window with location, problem, and more.";
+        public const string BEPINEX_FQDN_ID = "net.toppe.bepinex.dsp.veinexhaustion";
     }
 }

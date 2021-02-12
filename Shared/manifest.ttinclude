@@ -1,16 +1,19 @@
-﻿<#@ template debug="true" hostspecific="true" language="C#" #>
-<#@ assembly name="System.Core" #>
+﻿<#@ assembly name="System.Core" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="System.IO" #>
 <#@ import namespace="System.Text.RegularExpressions" #>
 <#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
-<#@ output extension=".json" #>
 <#
 
+//string path = this.Host.ResolvePath("../");
+//Directory.SetCurrentDirectory(path);
+
 Dictionary<string, string> kv = new Dictionary<string, string>();
-string input = File.ReadAllText("UiLayoutHeightFix/Version.cs");
+
+
+string input = File.ReadAllText(this.Host.ResolvePath("../Version.cs")); // "UiLayoutHeightFix/Version.cs"
 Regex pattern = new Regex("^\\s*public const string (?<key>\\w+)\\s+=\\s+\"(?<value>.+)\";", RegexOptions.Multiline);
 
 MatchCollection matches = pattern.Matches(input);
@@ -25,7 +28,7 @@ string shortVersion = kv["VERSION"].Remove(kv["VERSION"].LastIndexOf("."));
 {
     "name": "<#= kv["NAME"] #>",
     "version_number": "<#= shortVersion #>",
-    "website_url": "https://github.com/alekslt/DSPPlugins_ALT/tree/master/UiLayoutHeightFix",
+    "website_url": "https://github.com/alekslt/DSPPlugins_ALT/tree/master/<#= kv["NAME"] #>",
     "description": "<#= kv["DESCRIPTION"] #>",
     "dependencies": [
         "xiaoye97-BepInEx-5.4.5"
