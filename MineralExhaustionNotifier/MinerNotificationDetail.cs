@@ -20,5 +20,7 @@ namespace DSPPlugins_ALT
         internal float miningRatePerMin;
         internal string minutesToEmptyVeinTxt;
         internal Texture2D resourceTexture;
+        internal PowerNetwork powerNetwork;
+        internal MinerComponent minerComponent;
     }
 }

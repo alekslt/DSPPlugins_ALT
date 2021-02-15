@@ -1,10 +1,11 @@
-﻿using System;
+﻿using DSPPlugins_ALT.Statistics.Helpers;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace DSPPlugins_ALT
+namespace DSPPlugins_ALT.Statistics
 {
-    public class MinerStatistics
+    public class DSPStatistics
     {
         class NotificationTiming { public long lastNotification; public long lastUpdated; };
 
@@ -17,6 +18,7 @@ namespace DSPPlugins_ALT
         long notificationPruneTime = MineralExhaustionNotifier.timeStepsSecond * 30;
         public long lastTriggeredNotification = 0;
         public bool firstTimeNotification = true;
+        static long lastTime = 0;
 
         public void updateNotificationTimes(long time)
         {
@@ -59,7 +61,7 @@ namespace DSPPlugins_ALT
 
         public void prioritizeList()
         {
-            foreach (var planet in MinerStatistics.notificationList)
+            foreach (var planet in DSPStatistics.notificationList)
             {
                 planet.Value.Sort(delegate (MinerNotificationDetail x, MinerNotificationDetail y)
                 {
@@ -71,23 +73,31 @@ namespace DSPPlugins_ALT
             }
         }
 
+
+        public void onGameData_GameTick(long time, GameData __instance)
+        {
+            if (time - lastTime < (MineralExhaustionNotifier.timeStepsSecond * MineralExhaustionNotifier.CheckPeriodSeconds.Value)) { return; }
+            lastTime = time;
+
+            notificationList.Clear();
+
+            foreach (var planetFactory in __instance.factories)
+            {
+                if (planetFactory != null && planetFactory.factorySystem != null)
+                {
+                    onFactorySystem_GameTick(time, planetFactory.factorySystem);
+                }
+            }
+
+            updateNotificationTimes(time);
+            prioritizeList();
+        }
+
         public void onFactorySystem_GameTick(long time, FactorySystem factorySystem)
         {
             var factory = factorySystem.factory;
-            VeinData[] veinPool = factory.veinPool;
 
-            var minerPool = factorySystem.minerPool;
-
-            PowerSystem powerSystem = factory.powerSystem;
-            float[] networkServes = powerSystem.networkServes;
-            PowerConsumerComponent[] consumerPool = powerSystem.consumerPool;
-
-            GameHistoryData history = GameMain.history;
-            float miningCostRate = history.miningCostRate;
-            float miningSpeedScale = history.miningSpeedScale;
-
-            GameStatData statistics = GameMain.statistics;
-            FactoryProductionStat factoryProductionStat = statistics.production.factoryStatPool[factory.index];
+            FactoryProductionStat factoryProductionStat = GameMain.statistics.production.factoryStatPool[factory.index];
             int[] productRegister = factoryProductionStat.productRegister;
 
             for (int i = 1; i < factorySystem.minerCursor; i++)
@@ -95,9 +105,17 @@ namespace DSPPlugins_ALT
                 if (factorySystem.minerPool[i].id == i)
                 {
                     var minerComponent = factorySystem.minerPool[i];
-                    var network = networkServes[consumerPool[minerPool[i].pcId].networkId];
+                    var networkId = factory.powerSystem.consumerPool[minerComponent.pcId].networkId;
 
-                    if (MinerComponent_InternalUpdate(factory, veinPool, network, miningCostRate, miningSpeedScale, productRegister, minerComponent))
+                    if (MinerComponent_InternalUpdate(
+                        factory,
+                        factory.veinPool,
+                        factory.powerSystem.netPool[networkId],
+                        factory.powerSystem.networkServes[networkId],
+                        GameMain.history.miningCostRate,
+                        GameMain.history.miningSpeedScale,
+                        productRegister,
+                        minerComponent))
                     {
                         // Update notificationTimes used to trigger notifications
                         if (notificationTimes.ContainsKey(minerComponent.entityId))
@@ -117,7 +135,8 @@ namespace DSPPlugins_ALT
             }
         }
 
-        public bool MinerComponent_InternalUpdate(PlanetFactory factory, VeinData[] veinPool, float power, float miningRate, float miningSpeed, int[] productRegister, MinerComponent minerComponent)
+
+        public bool MinerComponent_InternalUpdate(PlanetFactory factory, VeinData[] veinPool, PowerNetwork powerNetwork, float power, float miningRate, float miningSpeed, int[] productRegister, MinerComponent minerComponent)
         {
             if (minerComponent.type != EMinerType.Vein)
             {
@@ -129,30 +148,19 @@ namespace DSPPlugins_ALT
             int vpNum = ((minerComponent.veinCount != 0) ? minerComponent.veins[minerComponent.currentVeinIndex] : 0);
             VeinData veinData = veinPool[vpNum];
             string veinName = veinData.type.ToString();
-
-            int veinAmount = 0;
-            if (minerComponent.veinCount > 0)
-            {
-                for (int i = 0; i < minerComponent.veinCount; i++)
-                {
-                    int num = minerComponent.veins[i];
-                    if (num > 0 && veinPool[num].id == num && veinPool[num].amount > 0)
-                    {
-                        veinAmount += veinPool[num].amount;
-                    }
-                }
-            }
+            int veinAmount = DSPStatisticsHelper.GetTotalVeinAmountForMineComponent(minerComponent, veinPool);
 
             var signData = factory.entitySignPool[minerComponent.entityId];
             var signType = signData.signType;
+            ItemProto itemProto = signData.iconId0 != 0 ? LDB.items.Select((int)signData.iconId0) : null;
 
             var time = (int)(power * (float)minerComponent.speed * miningSpeed * (float)minerComponent.veinCount);
 
-            ItemProto itemProto = signData.iconId0 != 0 ? LDB.items.Select((int)signData.iconId0) : null;
+            float num4 = ((powerNetwork == null || powerNetwork.id <= 0) ? 0f : ((float)powerNetwork.consumerRatio));
 
             // Debug.Log(factory.planet.displayName + " - " + __instance.entityId + ", " + veinName + ", " + __instance.workstate + ", VeinCount: " + __instance.veinCount + " VeinAmount: " + veinAmount + " | " + latlon);
 
-            if (veinAmount < MineralExhaustionNotifier.VeinAmountThreshold.Value || signType != SignData.NONE)
+            //if (veinAmount < MineralExhaustionNotifier.VeinAmountThreshold.Value || signType != SignData.NONE)
             {
                 if (!notificationList.ContainsKey(factory.planet.displayName))
                 {
@@ -171,15 +179,7 @@ namespace DSPPlugins_ALT
                 var miningRatePerMin = 0f;
                 if (time == 0 || veinAmount == 0 || minerComponent.period == 0)
                 {
-                    if (veinAmount == 0)
-                    {
-                        minutesToEmptyVeinTxt = "Empty";
-                    }
-                    else
-                    {
-                        minutesToEmptyVeinTxt = "Infinity";
-                    }
-
+                    minutesToEmptyVeinTxt = (veinAmount == 0) ? "Empty" : "Infinity";
                 }
                 else
                 {
@@ -192,10 +192,11 @@ namespace DSPPlugins_ALT
 
                 notificationList[factory.planet.displayName].Add(new MinerNotificationDetail()
                 {
+                    minerComponent = minerComponent,
                     entityId = minerComponent.entityId,
                     planetName = factory.planet.displayName,
                     itemProto = itemProto,
-                    signType = factory.entitySignPool[minerComponent.entityId].signType,
+                    signType = signData.signType,
                     veinName = veinName,
                     veinAmount = veinAmount,
                     plantPosition = plantPosition,
@@ -207,6 +208,7 @@ namespace DSPPlugins_ALT
                     miningRatePerMin = miningRatePerMin,
                     minutesToEmptyVeinTxt = minutesToEmptyVeinTxt,
                     resourceTexture = texture,
+                    powerNetwork = powerNetwork,
                 }); ;
 
                 return true;

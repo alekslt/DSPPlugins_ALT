@@ -4,6 +4,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using HarmonyLib;
 using System.Reflection;
+using System.Linq;
+using DSPPlugins_ALT.Statistics;
 
 namespace DSPPlugins_ALT
 {
@@ -26,13 +28,17 @@ namespace DSPPlugins_ALT
         public static bool HighlightButton = false;
         public static bool ShowButton = true;
         public static bool Show;
-        private static Rect winRect = new Rect(0, 0, 680, 300); // 540
+        private static Rect winRect = new Rect(0, 0, 880, 500); // 680
 
         private static Vector2 sv;
         private static GUIStyle textAlignStyle;
 
         private static GUIStyle menuButton;
         private static GUIStyle menuButtonHighlighted;
+
+        private static GUIStyle tabMenuButton;
+        private static GUIStyle tabMenuButtonSelected;
+
 
         private static bool isInit = false;
 
@@ -87,14 +93,25 @@ namespace DSPPlugins_ALT
 
             VeinIconLayoutOptions = new GUILayoutOption[] { GUILayout.Height(35), GUILayout.MaxWidth(35) };
             MenuButtonLayoutOptions = new GUILayoutOption[] { GUILayout.Height(45), GUILayout.MaxWidth(45) };
+
+            tabMenuButton = new GUIStyle(GUI.skin.button);
+            tabMenuButtonSelected = new GUIStyle(tabMenuButton);
+            tabMenuButtonSelected.normal.background = tabMenuButtonSelected.hover.background = tabMenuButtonSelected.active.background = Texture2D.blackTexture;
+ 
         }
 
+        public enum eTAB_TYPES { TAB_PLANET, TAB_NETWORK, TAB_RESOURCE };
+
+
+        public static eTAB_TYPES selectedTab = eTAB_TYPES.TAB_PLANET;
 
         public static void OnGUI()
         {
             var uiGame = BGMController.instance.uiGame;
             var shouldShowByGameState = DSPGame.GameDesc != null && uiGame != null && uiGame.gameData != null && uiGame.guideComplete && DSPGame.IsMenuDemo == false && DSPGame.Game.running && (UIGame.viewMode == EViewMode.Normal || UIGame.viewMode == EViewMode.Sail) &&
                 !(uiGame.techTree.active || uiGame.dysonmap.active || uiGame.starmap.active || uiGame.escMenu.active || uiGame.hideAllUI0 || uiGame.hideAllUI1) && uiGame.gameMenu.active;
+
+            //Show = shouldShowByGameState = DSPGame.MenuDemoLoaded;
 
             if (!shouldShowByGameState)
             {
@@ -143,10 +160,13 @@ namespace DSPPlugins_ALT
             }
         }
 
-        public static void DrawHeader()
+        public static void DrawHeader(bool includePlanet = false)
         {
             GUILayout.BeginHorizontal(GUI.skin.box, GUILayout.MaxHeight(45));
-            // GUILayout.Label($"<b>Planet</b>", textAlignStyle, PlanetColWidth);
+            if (includePlanet)
+            {
+                GUILayout.Label($"<b>Planet</b>", textAlignStyle, PlanetColWidth);
+            }
             GUILayout.Label($"<b>Location</b>", textAlignStyle, LocationColWidth);
             GUILayout.Label($"<b>Alarm</b>", textAlignStyle, AlarmColWidth);
             GUILayout.Label($"<b>Vein</b>", textAlignStyle, VeinTypeColWidth);
@@ -154,6 +174,47 @@ namespace DSPPlugins_ALT
             GUILayout.Label($"<b>Mining Rate/min</b>", textAlignStyle, VeinRateColWidth);
             GUILayout.Label($"<b>~Time to Empty</b>", textAlignStyle, VeinETAColWidth);
             GUILayout.EndHorizontal();
+        }
+
+        static void DrawMiners(IEnumerable<MinerNotificationDetail> miners, bool includePlanet = false)
+        {
+            GUIStyle boxStyle = new GUIStyle(GUI.skin.box)
+            {
+                margin = new RectOffset(5, 0, 0, 0)
+            };
+
+            foreach (var item in miners)
+            {
+                string latLon = DSPHelper.PositionToLatLon(item.plantPosition);
+
+                var alarmSign = (item.signType != SignData.NONE) ? sign_state[DSPHelper.SignNumToTextureIndex(item.signType)] : Texture2D.blackTexture;
+                var resourceTexture = item.resourceTexture ? item.resourceTexture : Texture2D.blackTexture;
+
+                // Debug.Log("Drawing sign-state-" + item.signType);
+
+                GUILayout.BeginHorizontal(boxStyle, GUILayout.MaxHeight(45));
+                if (includePlanet)
+                {
+                    GUILayout.Label($"{item.planetName}", textAlignStyle, PlanetColWidth);
+                }
+                GUILayout.Label($"{latLon}", textAlignStyle, LocationColWidth);
+
+                GUILayout.BeginHorizontal(VeinTypeColWidth);
+                GUILayout.Box(alarmSign, VeinIconLayoutOptions);
+                GUILayout.Label(DSPHelper.SignNumToText(item.signType), textAlignStyle);
+                GUILayout.EndHorizontal();
+
+                GUILayout.BeginHorizontal(VeinTypeColWidth);
+                GUILayout.Box(resourceTexture, VeinIconLayoutOptions);
+                GUILayout.Label($"{item.veinName}", textAlignStyle);
+                GUILayout.EndHorizontal();
+
+                GUILayout.Label($"{item.veinAmount}", textAlignStyle, VeinAmountColWidth);
+                GUILayout.Label($"{Math.Round(item.miningRatePerMin, 0)}", textAlignStyle, VeinRateColWidth);
+                GUILayout.Label($"{item.minutesToEmptyVeinTxt}", textAlignStyle, VeinETAColWidth);
+
+                GUILayout.EndHorizontal();
+            }
         }
 
         public static void WindowFunc(int id)
@@ -166,51 +227,89 @@ namespace DSPPlugins_ALT
             GUILayout.EndArea();
 
             GUILayout.BeginVertical();
+            // Draw Top Menu
+            GUILayout.BeginHorizontal(GUI.skin.box);
+            if (GUILayout.Button(eTAB_TYPES.TAB_PLANET.ToString(), selectedTab == eTAB_TYPES.TAB_PLANET ? tabMenuButtonSelected : tabMenuButton))
+            {
+                selectedTab = eTAB_TYPES.TAB_PLANET;
+            }
+            if (GUILayout.Button(eTAB_TYPES.TAB_NETWORK.ToString(), selectedTab == eTAB_TYPES.TAB_NETWORK ? tabMenuButtonSelected : tabMenuButton))
+            {
+                selectedTab = eTAB_TYPES.TAB_NETWORK;
+            }
+            if (GUILayout.Button(eTAB_TYPES.TAB_RESOURCE.ToString(), selectedTab == eTAB_TYPES.TAB_RESOURCE ? tabMenuButtonSelected : tabMenuButton))
+            {
+                selectedTab = eTAB_TYPES.TAB_RESOURCE;
+            }
+            GUILayout.EndHorizontal();
+
             sv = GUILayout.BeginScrollView(sv, GUI.skin.box);
 
-            GUIStyle boxStyle = new GUIStyle(GUI.skin.box)
+
+            // IOrderedEnumerable<IGrouping<Object, MinerNotificationDetail>> miners;
+            var minersAll = DSPStatistics.notificationList.Values.SelectMany(x => x).ToList();
+            if (selectedTab == eTAB_TYPES.TAB_PLANET)
             {
-                margin = new RectOffset(5, 0, 0, 0)
-            };
-
-            foreach (var planet in MinerStatistics.notificationList)
-            {
-                GUILayout.BeginHorizontal(GUI.skin.box);
-                GUILayout.Label($"<b>Planet {planet.Key}</b>", textAlignStyle, GUILayout.Width(260));
-                GUILayout.EndHorizontal();
-
-                DrawHeader();
-
-                foreach (var item in planet.Value)
+                foreach (var planet in DSPStatistics.notificationList)
                 {
-                    string latLon = DSPHelper.PositionToLatLon(item.plantPosition);
-
-                    var alarmSign = (item.signType != SignData.NONE) ? sign_state[DSPHelper.SignNumToTextureIndex(item.signType)] : Texture2D.blackTexture;
-                    var resourceTexture = item.resourceTexture ? item.resourceTexture : Texture2D.blackTexture;
-
-                    // Debug.Log("Drawing sign-state-" + item.signType);
-
-                    GUILayout.BeginHorizontal(boxStyle, GUILayout.MaxHeight(45));
-                    // GUILayout.Label($"{item.planetName}", textAlignStyle, PlanetColWidth);
-                    GUILayout.Label($"{latLon}", textAlignStyle, LocationColWidth);
-
-                    GUILayout.BeginHorizontal(VeinTypeColWidth);
-                    GUILayout.Box(alarmSign, VeinIconLayoutOptions);
-                    GUILayout.Label(DSPHelper.SignNumToText(item.signType), textAlignStyle);
+                    GUILayout.BeginHorizontal(GUI.skin.box);
+                    GUILayout.Label($"<b>Planet {planet.Key}</b>", textAlignStyle);
                     GUILayout.EndHorizontal();
 
-                    GUILayout.BeginHorizontal(VeinTypeColWidth);
-                    GUILayout.Box(resourceTexture, VeinIconLayoutOptions);
-                    GUILayout.Label($"{item.veinName}", textAlignStyle);
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Label($"{item.veinAmount}", textAlignStyle, VeinAmountColWidth);
-                    GUILayout.Label($"{item.miningRatePerMin}", textAlignStyle, VeinRateColWidth);
-                    GUILayout.Label($"{item.minutesToEmptyVeinTxt}", textAlignStyle, VeinETAColWidth);
-
-                    GUILayout.EndHorizontal();
+                    DrawHeader();
+                    DrawMiners(planet.Value);
                 }
             }
+            else if (selectedTab == eTAB_TYPES.TAB_NETWORK)
+            {
+                foreach (var planet in DSPStatistics.notificationList)
+                {
+                    GUILayout.BeginHorizontal(GUI.skin.box);
+                    GUILayout.Label($"<b>Planet {planet.Key}</b>", textAlignStyle);
+                    GUILayout.EndHorizontal();
+
+                    var miners = (from miner in planet.Value
+                                  orderby miner.veinAmount
+                                  group miner by miner.powerNetwork into netGroup
+                                  orderby netGroup.Key.id
+                                  select netGroup);
+
+                    foreach (var netGroup in miners)
+                    {
+                        GUILayout.BeginHorizontal(GUI.skin.box);
+                        GUILayout.Label($"<b>PowerNetwork {netGroup.Key.id} - Health: {Math.Round(netGroup.Key.consumerRatio*100,0) }</b>", textAlignStyle, GUILayout.Width(260));
+                        GUILayout.EndHorizontal();
+
+                        DrawHeader();
+                        DrawMiners(netGroup);
+                    }
+                }
+            }
+            else if (selectedTab == eTAB_TYPES.TAB_RESOURCE)
+            {
+                var miners = (from miner in minersAll
+                              orderby miner.veinAmount
+                              group miner by miner.veinName into resourceGroup
+                              orderby resourceGroup.Key
+                              select new { Name = resourceGroup.Key, Tex=resourceGroup.First().resourceTexture, Miners = resourceGroup.ToList(), SumMiningPerMin = resourceGroup.Sum( m => m.miningRatePerMin) });
+
+                foreach (var resourceGroup in miners)
+                {
+                    var resourceTexture = resourceGroup.Tex ? resourceGroup.Tex : Texture2D.blackTexture;
+
+                    GUILayout.BeginHorizontal(GUI.skin.box);
+                    GUILayout.Label($"<b>Resource</b>", textAlignStyle, GUILayout.Width(65));
+                    GUILayout.Box(resourceTexture, VeinIconLayoutOptions);
+                    GUILayout.Label($"<b>{resourceGroup.Name}</b>", textAlignStyle);
+                    GUILayout.Label($"  <b>Sum MiningRate: {resourceGroup.SumMiningPerMin}</b>", textAlignStyle);
+                    GUILayout.EndHorizontal();
+
+                    DrawHeader(includePlanet:true);
+                    DrawMiners(resourceGroup.Miners, includePlanet: true);
+                }
+            }
+
+
             
             
             GUILayout.EndScrollView();

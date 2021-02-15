@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using DSPPlugins_ALT.Statistics;
 
 namespace DSPPlugins_ALT
 {
@@ -16,7 +17,7 @@ namespace DSPPlugins_ALT
         public static bool showDialog = true;
         public static long timeStepsSecond = 60;
 
-        public static MinerStatistics minerStatistics = new MinerStatistics();
+        public static DSPStatistics minerStatistics = new DSPStatistics();
 
         public static ConfigEntry<int> CheckPeriodSeconds;
         public static ConfigEntry<int> VeinAmountThreshold;
@@ -76,25 +77,9 @@ namespace DSPPlugins_ALT
         [HarmonyPatch(typeof(GameData), "GameTick")]
         class GameData_GameTick
         {
-            static long lastTime = 0;
-
             public static void Postfix(long time, GameData __instance)
             {
-                if (time - lastTime < (timeStepsSecond * CheckPeriodSeconds.Value)) { return; }
-                lastTime = time;
-
-                MinerStatistics.notificationList.Clear();
-
-                foreach (var planetFactory in __instance.factories)
-                {
-                    if (planetFactory!= null && planetFactory.factorySystem != null)
-                    {
-                        minerStatistics.onFactorySystem_GameTick(time, planetFactory.factorySystem);
-                    }
-                }
-
-                minerStatistics.updateNotificationTimes(time);
-                minerStatistics.prioritizeList();
+                minerStatistics.onGameData_GameTick(time, __instance);
             }
         }
 
