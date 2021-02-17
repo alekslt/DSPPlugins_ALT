@@ -1,10 +1,25 @@
 ﻿using DSPPlugins_ALT.Statistics.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace DSPPlugins_ALT.Statistics
 {
+    class StationItemStat
+    {
+        internal StationStore item;
+        internal ItemProto itemProto;
+    }
+
+    public class StationStat
+    {
+        internal IList<StationItemStat> products;
+        internal PlanetData planetData;
+        internal string name;
+        internal StationComponent stationComponent;
+    };
+
     public class DSPStatistics
     {
         class NotificationTiming { public long lastNotification; public long lastUpdated; };
@@ -19,6 +34,9 @@ namespace DSPPlugins_ALT.Statistics
         public long lastTriggeredNotification = 0;
         public bool firstTimeNotification = true;
         static long lastTime = 0;
+
+        public static List<MinerNotificationDetail> minerStats = new List<MinerNotificationDetail>();
+        public static List<StationStat> logisticsStationStats = new List<StationStat>();
 
         public void updateNotificationTimes(long time)
         {
@@ -74,26 +92,62 @@ namespace DSPPlugins_ALT.Statistics
         }
 
 
-        public void onGameData_GameTick(long time, GameData __instance)
+        public void onGameData_GameTick(long time, GameData gameData)
         {
             if (time - lastTime < (MineralExhaustionNotifier.timeStepsSecond * MineralExhaustionNotifier.CheckPeriodSeconds.Value)) { return; }
             lastTime = time;
 
             notificationList.Clear();
+            minerStats.Clear();
+            logisticsStationStats.Clear();
 
-            foreach (var planetFactory in __instance.factories)
+            foreach (var planetFactory in gameData.factories)
             {
                 if (planetFactory != null && planetFactory.factorySystem != null)
                 {
-                    onFactorySystem_GameTick(time, planetFactory.factorySystem);
+                    factorySystemStatUpdate(time, planetFactory.factorySystem);
+                    for (int i = 1; i < planetFactory.transport.stationCursor; i++)
+                    {
+                        if (planetFactory.transport.stationPool[i] != null && planetFactory.transport.stationPool[i].id == i)
+                        {
+                            stationStatUpdate(planetFactory.transport.stationPool[i], planetFactory.planet);
+                        }
+                    }
                 }
             }
+            /*
+            for (int i = 1; i < gameData.galacticTransport.stationCursor; i++)
+            {
+                if (gameData.galacticTransport.stationPool[i] != null && gameData.galacticTransport.stationPool[i].gid == i)
+                {
+                    stationStatUpdate(gameData.galacticTransport.stationPool[i], gameData.galaxy.PlanetById(gameData.galacticTransport.stationPool[i].planetId));
+                }
+            }*/
 
             updateNotificationTimes(time);
             prioritizeList();
         }
 
-        public void onFactorySystem_GameTick(long time, FactorySystem factorySystem)
+        public void stationStatUpdate(StationComponent stationComponent, PlanetData planetData)
+        {
+            var items = from item in stationComponent.storage
+                        where item.itemId != 0
+                        select new StationItemStat()
+                        {
+                            item = item,
+                            itemProto = LDB.items.Select(item.itemId)
+                        };
+
+            string text = ((!string.IsNullOrEmpty(stationComponent.name)) ? stationComponent.name : ((!stationComponent.isStellar) ? ("本地站点号".Translate() + stationComponent.id) : ("星际站点号".Translate() + stationComponent.gid)));
+            logisticsStationStats.Add(new StationStat() {
+                planetData = planetData,
+                stationComponent = stationComponent,
+                name = text,
+                products = items.ToList()
+            });
+        }
+
+        public void factorySystemStatUpdate(long time, FactorySystem factorySystem)
         {
             var factory = factorySystem.factory;
 
@@ -156,7 +210,7 @@ namespace DSPPlugins_ALT.Statistics
 
             var time = (int)(power * (float)minerComponent.speed * miningSpeed * (float)minerComponent.veinCount);
 
-            float num4 = ((powerNetwork == null || powerNetwork.id <= 0) ? 0f : ((float)powerNetwork.consumerRatio));
+            float consumerRatio = ((powerNetwork == null || powerNetwork.id <= 0) ? 0f : ((float)powerNetwork.consumerRatio));
 
             // Debug.Log(factory.planet.displayName + " - " + __instance.entityId + ", " + veinName + ", " + __instance.workstate + ", VeinCount: " + __instance.veinCount + " VeinAmount: " + veinAmount + " | " + latlon);
 
@@ -187,10 +241,14 @@ namespace DSPPlugins_ALT.Statistics
                     var secondsPerMiningOperation = (float)miningTimePerSec / (float)time;
                     miningRatePerMin = 60 / secondsPerMiningOperation;
                     var minutesToEmptyVein = (float)veinAmount / miningRatePerMin;
-                    minutesToEmptyVeinTxt = Math.Round(minutesToEmptyVein).ToString() + " min"; // .ToString("0.0") + "每分钟".Translate();
+                    minutesToEmptyVeinTxt = Math.Round(minutesToEmptyVein).ToString();
+                    if (minerComponent.workstate == EWorkState.Full)
+                    {
+                        minutesToEmptyVeinTxt += " to ∞";
+                    }
+                    minutesToEmptyVeinTxt += " min"; // .ToString("0.0") + "每分钟".Translate();
                 }
-
-                notificationList[factory.planet.displayName].Add(new MinerNotificationDetail()
+                var minerStat = new MinerNotificationDetail()
                 {
                     minerComponent = minerComponent,
                     entityId = minerComponent.entityId,
@@ -209,7 +267,10 @@ namespace DSPPlugins_ALT.Statistics
                     minutesToEmptyVeinTxt = minutesToEmptyVeinTxt,
                     resourceTexture = texture,
                     powerNetwork = powerNetwork,
-                }); ;
+                    consumerRatio = consumerRatio
+                };
+                minerStats.Add(minerStat);
+                notificationList[factory.planet.displayName].Add(minerStat); ;
 
                 return true;
             }

@@ -24,6 +24,7 @@ namespace DSPPlugins_ALT
         public static ConfigEntry<bool> ShowMenuButton;
         public static ConfigEntry<KeyCode> ShowNotificationWindowHotKey;
 
+        public static MineralExhaustionNotifier instance;
 
         void InitConfig()
         {
@@ -39,6 +40,7 @@ namespace DSPPlugins_ALT
         // Awake is called once when both the game and the plug-in are loaded
         void Awake()
         {
+            instance = this;
             InitConfig();
 
             UnityEngine.Debug.Log("Mineral Vein Exhaustion Plugin Loaded!");

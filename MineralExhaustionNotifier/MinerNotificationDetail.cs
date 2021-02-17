@@ -22,5 +22,6 @@ namespace DSPPlugins_ALT
         internal Texture2D resourceTexture;
         internal PowerNetwork powerNetwork;
         internal MinerComponent minerComponent;
+        internal float consumerRatio;
     }
 }
