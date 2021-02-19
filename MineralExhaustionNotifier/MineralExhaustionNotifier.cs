@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 using DSPPlugins_ALT.Statistics;
+using DSPPlugins_ALT.GUI;
 
 namespace DSPPlugins_ALT
 {
@@ -18,6 +19,7 @@ namespace DSPPlugins_ALT
         public static long timeStepsSecond = 60;
 
         public static DSPStatistics minerStatistics = new DSPStatistics();
+        public static MinerNotificationUI minerNotificationUI = new MinerNotificationUI();
 
         public static ConfigEntry<int> CheckPeriodSeconds;
         public static ConfigEntry<int> VeinAmountThreshold;
@@ -33,7 +35,7 @@ namespace DSPPlugins_ALT
             ShowMenuButton = Config.Bind("General.Toggles", "ShowMenuButton", true, "Whether or not to show the menu button lower right");
             ShowNotificationWindowHotKey = Config.Bind<KeyCode>("config", "ShowInformationWindowHotKey", KeyCode.I, "Key to press for toggling the Miner Information Window");
 
-            MinerNotificationUI.ShowButton = ShowMenuButton.Value;
+            GUI.MinerNotificationUI.ShowButton = ShowMenuButton.Value;
         }
 
         #region Unity Core Methods
@@ -56,12 +58,12 @@ namespace DSPPlugins_ALT
                     minerStatistics.triggerNotification = false;
                     minerStatistics.firstTimeNotification = false;
                     minerStatistics.lastTriggeredNotification = GameMain.instance.timei;
-                    MinerNotificationUI.Show = true;
+                    GUI.MinerNotificationUI.Show = true;
                 }
             }
 
             if (Input.GetKeyDown(ShowNotificationWindowHotKey.Value)) {
-                MinerNotificationUI.Show = !MinerNotificationUI.Show;
+                GUI.MinerNotificationUI.Show = !GUI.MinerNotificationUI.Show;
             }
         }
 
@@ -69,7 +71,7 @@ namespace DSPPlugins_ALT
         {
             if (showDialog)
             {
-                MinerNotificationUI.OnGUI();
+                minerNotificationUI.OnGUI();
             }
         }
         #endregion // Unity Core Methods

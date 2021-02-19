@@ -76,14 +76,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DSPHelper.cs" />
+    <Compile Include="DSPHelpers\DSPHelper.cs" />
+    <Compile Include="GUI\Filters\Filter.cs" />
+    <Compile Include="GUI\Helpers\FilterHelper.cs" />
+    <Compile Include="GUI\Filters\PresOrderTuple.cs" />
+    <Compile Include="GUI\Filters\ResStationGroup.cs" />
     <Compile Include="Statistics\Helpers\DSPStatisticsHelpers.cs" />
     <Compile Include="MineralExhaustionNotifier.cs" />
     <Compile Include="Statistics\DSPStatistics.cs" />
     <Compile Include="MinerNotificationDetail.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MinerNotificationUI.cs" />
-    <Compile Include="UIHelper.cs" />
+    <Compile Include="GUI\MinerNotificationUI.cs" />
+    <Compile Include="GUI\Helpers\UIHelper.cs" />
+    <Compile Include="GUI\Filters\StationItemStat.cs" />
+    <Compile Include="GUI\Filters\StationStat.cs" />
     <Compile Include="Version.cs" />
   </ItemGroup>
   <ItemGroup>

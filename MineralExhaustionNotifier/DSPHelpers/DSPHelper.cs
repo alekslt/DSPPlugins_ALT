@@ -85,5 +85,34 @@ namespace DSPPlugins_ALT
                     return 7;
             }
         }
+
+
+        public static string WorkStateToText(EWorkState workState, float consumerRatio)
+        {
+            switch (workState)
+            {
+                case EWorkState.Idle:
+                    return "无矿物".Translate();
+                case EWorkState.Lack:
+                    return "缺少原材料".Translate();
+                case EWorkState.Full:
+                    return "产物堆积".Translate();
+                case EWorkState.Running:
+                case EWorkState.Outputing:
+                    if (consumerRatio == 1f)
+                    {
+                        return "正常运转".Translate();
+                    }
+                    else if (consumerRatio > 0.1f)
+                    {
+                        return "电力不足".Translate();
+                    }
+                    else
+                    {
+                        return "停止运转".Translate();
+                    }
+            }
+            return "Unknown";
+        }
     }
 }

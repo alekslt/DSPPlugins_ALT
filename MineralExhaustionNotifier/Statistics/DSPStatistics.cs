@@ -6,20 +6,6 @@ using UnityEngine;
 
 namespace DSPPlugins_ALT.Statistics
 {
-    class StationItemStat
-    {
-        internal StationStore item;
-        internal ItemProto itemProto;
-    }
-
-    public class StationStat
-    {
-        internal IList<StationItemStat> products;
-        internal PlanetData planetData;
-        internal string name;
-        internal StationComponent stationComponent;
-    };
-
     public class DSPStatistics
     {
         class NotificationTiming { public long lastNotification; public long lastUpdated; };
@@ -70,10 +56,10 @@ namespace DSPPlugins_ALT.Statistics
             if (notificationTimes.Count == 0)
             {
                 firstTimeNotification = true;
-                MinerNotificationUI.HighlightButton = false;
+                GUI.MinerNotificationUI.HighlightButton = false;
             } else
             {
-                MinerNotificationUI.HighlightButton = true;
+                GUI.MinerNotificationUI.HighlightButton = true;
             }
         }
 
@@ -205,7 +191,6 @@ namespace DSPPlugins_ALT.Statistics
             int veinAmount = DSPStatisticsHelper.GetTotalVeinAmountForMineComponent(minerComponent, veinPool);
 
             var signData = factory.entitySignPool[minerComponent.entityId];
-            var signType = signData.signType;
             ItemProto itemProto = signData.iconId0 != 0 ? LDB.items.Select((int)signData.iconId0) : null;
 
             var time = (int)(power * (float)minerComponent.speed * miningSpeed * (float)minerComponent.veinCount);
