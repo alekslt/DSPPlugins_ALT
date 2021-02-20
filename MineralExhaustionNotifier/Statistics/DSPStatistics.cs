@@ -97,7 +97,7 @@ namespace DSPPlugins_ALT.Statistics
                     {
                         if (planetFactory.transport.stationPool[i] != null && planetFactory.transport.stationPool[i].id == i)
                         {
-                            stationStatUpdate(planetFactory.transport.stationPool[i], planetFactory.planet);
+                            stationStatUpdate(planetFactory.transport.stationPool[i], planetFactory);
                         }
                     }
                 }
@@ -113,10 +113,18 @@ namespace DSPPlugins_ALT.Statistics
 
             updateNotificationTimes(time);
             prioritizeList();
+            if (onStatSourcesUpdated != null)
+            {
+                onStatSourcesUpdated(time);
+            }
         }
 
-        public void stationStatUpdate(StationComponent stationComponent, PlanetData planetData)
+        public event Action<long> onStatSourcesUpdated;
+
+        public void stationStatUpdate(StationComponent stationComponent, PlanetFactory factory)
         {
+            var stationPosition = factory.entityPool[stationComponent.entityId].pos;
+
             var items = from item in stationComponent.storage
                         where item.itemId != 0
                         select new StationItemStat()
@@ -127,10 +135,11 @@ namespace DSPPlugins_ALT.Statistics
 
             string text = ((!string.IsNullOrEmpty(stationComponent.name)) ? stationComponent.name : ((!stationComponent.isStellar) ? ("本地站点号".Translate() + stationComponent.id) : ("星际站点号".Translate() + stationComponent.gid)));
             logisticsStationStats.Add(new StationStat() {
-                planetData = planetData,
+                planetData = factory.planet,
                 stationComponent = stationComponent,
                 name = text,
-                products = items.ToList()
+                products = items.ToList(),
+                stationPosition = stationPosition,
             });
         }
 
@@ -217,19 +226,21 @@ namespace DSPPlugins_ALT.Statistics
                     veinName = itemProto.name.Translate();
                 }
 
+                float minutesToEmptyVein;
                 string minutesToEmptyVeinTxt;
                 var miningRatePerMin = 0f;
                 if (time == 0 || veinAmount == 0 || minerComponent.period == 0)
                 {
                     minutesToEmptyVeinTxt = (veinAmount == 0) ? "Empty" : "Infinity";
+                    minutesToEmptyVein = (veinAmount == 0) ? 0 : float.PositiveInfinity;
                 }
                 else
                 {
                     var miningTimePerSec = minerComponent.period / (MineralExhaustionNotifier.timeStepsSecond);
                     var secondsPerMiningOperation = (float)miningTimePerSec / (float)time;
                     miningRatePerMin = 60 / secondsPerMiningOperation;
-                    var minutesToEmptyVein = (float)veinAmount / miningRatePerMin;
-                    minutesToEmptyVeinTxt = Math.Round(minutesToEmptyVein).ToString();
+                    minutesToEmptyVein = (float)Math.Round((float)veinAmount / miningRatePerMin, 0);
+                    minutesToEmptyVeinTxt = minutesToEmptyVein.ToString();
                     if (minerComponent.workstate == EWorkState.Full)
                     {
                         minutesToEmptyVeinTxt += " to ∞";
@@ -252,6 +263,7 @@ namespace DSPPlugins_ALT.Statistics
                     period = minerComponent.period,
                     veinCount = minerComponent.veinCount,
                     miningRatePerMin = miningRatePerMin,
+                    minutesToEmptyVein = minutesToEmptyVein,
                     minutesToEmptyVeinTxt = minutesToEmptyVeinTxt,
                     resourceTexture = texture,
                     powerNetwork = powerNetwork,

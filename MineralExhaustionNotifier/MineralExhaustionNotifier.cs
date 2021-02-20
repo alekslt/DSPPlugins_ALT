@@ -19,7 +19,7 @@ namespace DSPPlugins_ALT
         public static long timeStepsSecond = 60;
 
         public static DSPStatistics minerStatistics = new DSPStatistics();
-        public static MinerNotificationUI minerNotificationUI = new MinerNotificationUI();
+        public static MinerNotificationUI minerNotificationUI;
 
         public static ConfigEntry<int> CheckPeriodSeconds;
         public static ConfigEntry<int> VeinAmountThreshold;
@@ -43,14 +43,28 @@ namespace DSPPlugins_ALT
         void Awake()
         {
             instance = this;
+
+            minerNotificationUI = new MinerNotificationUI(minerStatistics);
             InitConfig();
 
             UnityEngine.Debug.Log("Mineral Vein Exhaustion Plugin Loaded!");
             var harmony = new Harmony(VersionInfo.BEPINEX_FQDN_ID);
             harmony.PatchAll();
         }
+
+        bool keyModifierAltIsDown = false;
+
         void Update()
         {
+            if (Input.GetKeyDown(KeyCode.LeftAlt) || Input.GetKeyDown(KeyCode.RightAlt)) {
+                keyModifierAltIsDown = true;
+            }
+            if (Input.GetKeyUp(KeyCode.LeftAlt) || Input.GetKeyUp(KeyCode.RightAlt))
+            {
+                keyModifierAltIsDown = false;
+            }
+
+
             if (minerStatistics.triggerNotification)
             {
                 if (minerStatistics.firstTimeNotification)
@@ -62,7 +76,7 @@ namespace DSPPlugins_ALT
                 }
             }
 
-            if (Input.GetKeyDown(ShowNotificationWindowHotKey.Value)) {
+            if (keyModifierAltIsDown && Input.GetKeyDown(ShowNotificationWindowHotKey.Value)) {
                 GUI.MinerNotificationUI.Show = !GUI.MinerNotificationUI.Show;
             }
         }

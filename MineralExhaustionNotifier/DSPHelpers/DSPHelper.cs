@@ -11,12 +11,8 @@ namespace DSPPlugins_ALT
         public static string PositionToLatLon(Vector3 position)
         {
             Maths.GetLatitudeLongitude(position, out var latd, out var latf, out var logd, out var logf, out var north, out var south, out var west, out var east);
-            bool flag2 = !north && !south;
-            bool flag3 = !east && !west;
-
-
-            string lat = latd + "° " + latf + "′";
-            string lon = logd + "° " + logf + "′";
+            string lat = String.Format("{0,3}", latd) + "° " + String.Format("{0,3}", latf) + "′";
+            string lon = String.Format("{0,3}", logd) + "° " + String.Format("{0,3}", logf) + "′";
 
             lat += (north) ? " N" : " S";
             lon += (west) ? " W" : " E";

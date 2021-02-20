@@ -31,7 +31,7 @@ namespace DSPPlugins_ALT.GUI
         public static bool HighlightButton = false;
         public static bool ShowButton = true;
         public static bool Show;
-        private static Rect winRect = new Rect(0, 0, 1000, 650); // 680
+        private static Rect winRect = new Rect(0, 0, 1015, 650); // 680
 
         private static Vector2 sv;
         private static GUIStyle textAlignStyle;
@@ -62,6 +62,21 @@ namespace DSPPlugins_ALT.GUI
 
 
         public static Dictionary<eTAB_SOURCE_TYPE, DSPStatSource> DSPStatSources = new Dictionary<eTAB_SOURCE_TYPE, DSPStatSource>();
+        private DSPStatistics minerStatistics;
+
+        public MinerNotificationUI(DSPStatistics minerStatistics)
+        {
+            this.minerStatistics = minerStatistics;
+            minerStatistics.onStatSourcesUpdated += MinerStatistics_onStatSourcesUpdated;
+        }
+
+        private void MinerStatistics_onStatSourcesUpdated(long obj)
+        {
+            foreach (var source in DSPStatSources.Where(s => s.Value.ShouldAutoUpdate))
+            {
+                source.Value.UpdateSource();
+            }
+        }
 
         /*
         public static Dictionary<eTAB_SOURCE_TYPE, IList<eTAB_TYPES>> TABSourceGroups = new Dictionary<eTAB_SOURCE_TYPE, IList<eTAB_TYPES>>()
@@ -219,12 +234,21 @@ namespace DSPPlugins_ALT.GUI
         public abstract class DSPStatSource
         {
             public IList<eTAB_TYPES> TABPages;
+            public Dictionary<eTAB_TYPES, TabFilterInfo> TabFilterInfo = new Dictionary<eTAB_TYPES, TabFilterInfo>();
 
             public abstract void UpdateSource();
             public abstract void DrawFilterGUI();
             public abstract void DrawTabGUI();
 
+            public bool ShouldAutoUpdate { get; set; } = false;
+
         }
+        public class TabFilterInfo
+        {
+            public int ItemsBefore;
+            public int ItemsAfter;
+        }
+
         public class DSPStatSourceVeinMiners : DSPStatSource
         {
             public IEnumerable<MinerNotificationDetail> Source;
@@ -237,6 +261,7 @@ namespace DSPPlugins_ALT.GUI
                 foreach (eTAB_TYPES tabType in TABPages)
                 {
                     TabFilters[tabType] = new List<Filter<MinerNotificationDetail>>();
+                    TabFilterInfo[tabType] = new TabFilterInfo();
                 }
                 
                 InitFilters();
@@ -246,24 +271,125 @@ namespace DSPPlugins_ALT.GUI
             {
                 // Source = DSPStatistics.notificationList.Values.SelectMany(x => x).ToList();
                 Source = DSPStatistics.minerStats;
-
                 
-                var newFilteredSource = Source;
                 foreach (var tbFilterKV in TabFilters)
                 {
+                    var newFilteredSource = Source;
+                    TabFilterInfo[tbFilterKV.Key].ItemsBefore = newFilteredSource.Count();
                     foreach (var filter in tbFilterKV.Value.Where(f => f.enabled == true))
                     {
+                        // Debug.Log($"{this.GetType().Name} : Filter : {filter.name} : PreCount= {newFilteredSource.Count()}");
                         newFilteredSource = filter.LINQFilter(filter, newFilteredSource);
+                        // Debug.Log($"{this.GetType().Name} : Filter : {filter.name} : PostCount= {newFilteredSource.Count()}");
                     }
                     FilteredSource[tbFilterKV.Key] = newFilteredSource;
+                    TabFilterInfo[tbFilterKV.Key].ItemsAfter = newFilteredSource.Count();
                 }  
             }
 
-            
+            public void InitFilters()
+            {
+                Filter<MinerNotificationDetail> miningRateFilter = new Filter<MinerNotificationDetail>()
+                {
+                    name = "miningRateFilter",
+                    enabled = true,
+                    value = 100,
+                    onGUI = (filter) =>
+                    {
+                        GUILayout.BeginVertical();
+                        var enabled = GUILayout.Toggle(filter.enabled, $"Mining Rate: <{filter.value.ToString("F0")}");
+                        var value = GUILayout.HorizontalSlider(filter.value, 0, 1000);
+                        var shouldUpdateFiltered = (filter.enabled != enabled || filter.value != value);
+                        filter.enabled = enabled;
+                        filter.value = value;
+                        GUILayout.EndVertical();
+                        return shouldUpdateFiltered;
+                    },
+                    LINQFilter = (filter, source) =>
+                    {
+                        return source.Where(miner => miner.miningRatePerMin < filter.value);
+                    }
+                };
+
+                Filter<MinerNotificationDetail> miningRateSummedFilter = new Filter<MinerNotificationDetail>()
+                {
+                    name = "miningRateSummedFilter",
+                    enabled = true,
+                    value = 3000,
+                    onGUI = (filter) =>
+                    {
+                        GUILayout.BeginVertical();
+                        var enabled = GUILayout.Toggle(filter.enabled, $"Mining Rate (Sum): <{filter.value.ToString("F0")}");
+                        var value = GUILayout.HorizontalSlider(filter.value, 0, 10000);
+                        var shouldUpdateFiltered = (filter.enabled != enabled || filter.value != value);
+                        filter.enabled = enabled;
+                        filter.value = value;
+                        GUILayout.EndVertical();
+                        return shouldUpdateFiltered;
+                    },
+                    LINQFilter = (filter, source) =>
+                    {
+                        var miners = source
+                            .GroupBy(x => x.veinName).OrderBy(g => g.Key)
+                            .Select(mtg => new { Name = mtg.Key, Miners = mtg.ToList(), SumMiningPerMin = mtg.Sum(m => m.miningRatePerMin) })
+                            .Where(mtg => mtg.SumMiningPerMin < filter.value)
+                            .SelectMany(mtg => mtg.Miners);
+
+                        return miners;
+                    }
+                };
+
+                Filter<MinerNotificationDetail> hasAlarmFilter = new Filter<MinerNotificationDetail>()
+                {
+                    name = "hasAlarmFilter",
+                    enabled = false,
+                    value = 0,
+                    onGUI = (filter) =>
+                    {
+                        GUILayout.BeginVertical();
+                        var enabled = GUILayout.Toggle(filter.enabled, $"Has Alarm State");
+                        //var value = GUILayout.HorizontalSlider(filter.value, 0, 1000);
+                        var shouldUpdateFiltered = (filter.enabled != enabled);
+                        filter.enabled = enabled;
+                        GUILayout.EndVertical();
+                        return shouldUpdateFiltered;
+                    },
+                    LINQFilter = (filter, source) =>
+                    {
+                        var miners = source
+                            .Where(m => m.signType != SignData.NONE);
+
+                        return miners;
+                    }
+                };
+                AddFilterToTabs(miningRateFilter, new List<eTAB_TYPES> { eTAB_TYPES.TAB_PLANET, eTAB_TYPES.TAB_NETWORK, eTAB_TYPES.TAB_RESOURCE });
+                AddFilterToTabs(miningRateSummedFilter, new List<eTAB_TYPES> { eTAB_TYPES.TAB_RESOURCE });
+                AddFilterToTabs(hasAlarmFilter, new List<eTAB_TYPES> { eTAB_TYPES.TAB_PLANET, eTAB_TYPES.TAB_NETWORK, eTAB_TYPES.TAB_RESOURCE });
+            }
+
+            public void AddFiltersToTab(eTAB_TYPES tab, IEnumerable<Filter<MinerNotificationDetail>> filters)
+            {
+                foreach (var filter in filters)
+                {
+                    TabFilters[tab].Add(filter);
+                }
+            }
+            public void AddFilterToTabs(Filter<MinerNotificationDetail> filter, IEnumerable<eTAB_TYPES> tabs)
+            {
+                foreach (var tab in tabs)
+                {
+                    TabFilters[tab].Add(filter);
+                }
+            }
+
             public override void DrawFilterGUI()
             {
                 bool shouldUpdateFiltered = false;
-                GUILayout.Label($"<b>Filters</b>", textAlignStyle, GUILayout.Width(100));
+                GUILayout.BeginVertical(GUILayout.MaxWidth(80));
+                GUILayout.Label($"<b>Filters</b>", textAlignStyle);
+                GUILayout.Label($"({TabFilterInfo[selectedTab].ItemsAfter}/{TabFilterInfo[selectedTab].ItemsBefore})", textAlignStyle);
+                GUILayout.EndVertical();
+
                 foreach (var filter in TabFilters[selectedTab])
                 {
                     GUILayout.BeginHorizontal(GUILayout.MaxWidth(150));
@@ -302,8 +428,6 @@ namespace DSPPlugins_ALT.GUI
 
                 foreach (var item in miners)
                 {
-                    string latLon = DSPHelper.PositionToLatLon(item.plantPosition);
-
                     var alarmSign = (item.signType != SignData.NONE) ? sign_state[DSPHelper.SignNumToTextureIndex(item.signType)] : Texture2D.blackTexture;
                     var resourceTexture = item.resourceTexture ? item.resourceTexture : Texture2D.blackTexture;
 
@@ -314,7 +438,7 @@ namespace DSPPlugins_ALT.GUI
                     {
                         GUILayout.Label($"{item.planetName}", textAlignStyle, PlanetColWidth);
                     }
-                    GUILayout.Label($"{latLon}", textAlignStyle, LocationColWidth);
+                    GUILayout.Label($"{DSPHelper.PositionToLatLon(item.plantPosition)}", textAlignStyle, LocationColWidth);
                     GUILayout.Label($"{DSPHelper.WorkStateToText(item.minerComponent.workstate, item.consumerRatio)}", textAlignStyle, LocationColWidth);
 
                     GUILayout.BeginHorizontal(VeinTypeColWidth);
@@ -337,10 +461,9 @@ namespace DSPPlugins_ALT.GUI
 
             public override void DrawTabGUI()
             {
-                // var minersAll = FilteredSource[selectedTab];
-                var minersByPlanet = FilteredSource[selectedTab].GroupBy(m => m.planetName).OrderBy(g => g.Key);
-                // IOrderedEnumerable<IGrouping<Object, MinerNotificationDetail>> miners;
-                //var minersAll = DSPStatistics.notificationList.Values.SelectMany(x => x).ToList();
+                var minersByPlanet = FilteredSource[selectedTab]
+                        .OrderBy(m => m.minutesToEmptyVein)
+                        .GroupBy(m => m.planetName).OrderBy(g => g.Key);
 
                 if (selectedTab == eTAB_TYPES.TAB_PLANET)
                 {
@@ -363,13 +486,10 @@ namespace DSPPlugins_ALT.GUI
                         GUILayout.Label($"<b>Planet {planet.Key}</b>", textAlignStyle);
                         GUILayout.EndHorizontal();
 
-                        var planetNetGroups = planet.OrderBy(m => m.veinAmount).GroupBy(m => m.powerNetwork).OrderBy(ng => ng.Key.id);   
-                            /*
-                        var miners = (from miner in planet.Value
-                                      orderby miner.veinAmount
-                                      group miner by miner.powerNetwork into netGroup
-                                      orderby netGroup.Key.id
-                                      select netGroup);*/
+                        var planetNetGroups = planet
+                            .OrderBy(m => m.veinAmount)
+                            .GroupBy(m => m.powerNetwork)
+                            .OrderBy(ng => ng.Key.id);   
 
                         foreach (var netGroup in planetNetGroups)
                         {
@@ -385,7 +505,7 @@ namespace DSPPlugins_ALT.GUI
                 else if (selectedTab == eTAB_TYPES.TAB_RESOURCE)
                 {
                     var miners = FilteredSource[selectedTab]
-                                        .OrderByDescending(miner => miner.veinAmount)
+                                        .OrderBy(miner => miner.veinAmount)
                                         .GroupBy(x => x.veinName).OrderBy(g => g.Key)
                                         .Select(mtg => new { Name = mtg.Key, Tex = mtg.First().resourceTexture, Miners = mtg.ToList(), SumMiningPerMin = mtg.Sum(m => m.miningRatePerMin) });
 
@@ -406,32 +526,6 @@ namespace DSPPlugins_ALT.GUI
                 }
             }
 
-            public void InitFilters()
-            {
-                Filter<MinerNotificationDetail> miningRateFilter = new Filter<MinerNotificationDetail>()
-                {
-                    enabled = true,
-                    value = 100,
-                    onGUI = (filter) =>
-                    {
-                        GUILayout.BeginVertical();
-                        var enabled = GUILayout.Toggle(filter.enabled, $"Mining Rate: {filter.value.ToString("F0")}");
-                        var value = GUILayout.HorizontalSlider(filter.value, 0, 1000);
-                        var shouldUpdateFiltered = (filter.enabled != enabled || filter.value != value);
-                        filter.enabled = enabled;
-                        filter.value = value;
-                        GUILayout.EndVertical();
-                        return shouldUpdateFiltered;
-                    },
-                    LINQFilter = (filter, source) =>
-                    {
-                        return source.Where(miner => miner.miningRatePerMin < filter.value);
-                    }
-                };
-
-                TabFilters[eTAB_TYPES.TAB_PLANET].Add(miningRateFilter);
-                TabFilters[eTAB_TYPES.TAB_NETWORK].Add(miningRateFilter);
-            }
         }
 
         public class DSPStatSourceLogisticStations : DSPStatSource
@@ -445,6 +539,7 @@ namespace DSPPlugins_ALT.GUI
                 foreach (eTAB_TYPES tabType in Enum.GetValues(typeof(eTAB_TYPES)))
                 {
                     TabFilters[tabType] = new List<Filter<ResStationGroup>>();
+                    TabFilterInfo[tabType] = new TabFilterInfo();
                 }
                 TABPages = new List<eTAB_TYPES>() { eTAB_TYPES.TAB_PLANET, eTAB_TYPES.TAB_RESOURCE };
                 InitFilters();
@@ -454,15 +549,178 @@ namespace DSPPlugins_ALT.GUI
             public override void UpdateSource()
             {
                 Source = DSPStatistics.logisticsStationStats.SelectMany(station => station.products, (station, product) => new ResStationGroup() { station = station, product = product });
-
-                var newFilteredSource = Source;
+                
                 foreach (var tbFilterKV in TabFilters)
                 {
+                    var newFilteredSource = Source;
+                    TabFilterInfo[tbFilterKV.Key].ItemsBefore = newFilteredSource.Count();
                     foreach (var filter in tbFilterKV.Value.Where(f => f.enabled == true))
                     {
                         newFilteredSource = filter.LINQFilter(filter, newFilteredSource);
                     }
                     FilteredSource[tbFilterKV.Key] = newFilteredSource;
+                    TabFilterInfo[tbFilterKV.Key].ItemsAfter = newFilteredSource.Count();
+                }
+            }
+
+            public void InitFilters()
+            {
+                Filter<ResStationGroup> stationItemAmountFilter = new Filter<ResStationGroup>()
+                {
+                    enabled = true,
+                    value = 50,
+                    onGUI = (filter) =>
+                    {
+                        GUILayout.BeginVertical();
+                        var enabled = GUILayout.Toggle(filter.enabled, $"Item Amount %: <{filter.value.ToString("F0")}");
+                        var value = GUILayout.HorizontalSlider(filter.value, 0, 100);
+                        var shouldUpdateFiltered = (filter.enabled != enabled || filter.value != value);
+                        filter.enabled = enabled;
+                        filter.value = value;
+                        GUILayout.EndVertical();
+                        return shouldUpdateFiltered;
+                    },
+                    LINQFilter = (filter, source) =>
+                    {
+                        return source.Where(sg => Math.Min((float)sg.product.item.count / sg.product.item.max, 1) <= (filter.value / 100));
+                    }
+                };
+
+                Filter<ResStationGroup> stationWarpAmountFilter = new Filter<ResStationGroup>()
+                {
+                    enabled = false,
+                    value = 50,
+                    onGUI = (filter) =>
+                    {
+                        GUILayout.BeginVertical();
+                        var enabled = GUILayout.Toggle(filter.enabled, $"Warper Amount %: <{filter.value.ToString("F0")}");
+                        var value = GUILayout.HorizontalSlider(filter.value, 0, 100);
+                        var shouldUpdateFiltered = (filter.enabled != enabled || filter.value != value);
+                        filter.enabled = enabled;
+                        filter.value = value;
+                        GUILayout.EndVertical();
+                        return shouldUpdateFiltered;
+                    },
+                    LINQFilter = (filter, source) =>
+                    {
+                        return source.Where(sg => Math.Min((float)sg.station.stationComponent.warperCount / sg.station.stationComponent.warperMaxCount, 1) <= (filter.value / 100));
+                    }
+                };
+
+                Filter<ResStationGroup> stationTypeFilter = new Filter<ResStationGroup>()
+                {
+                    enabled = true,
+                    value = 1,
+                    value2 = 1,
+                    value3 = 1,
+                    onGUI = (filter) =>
+                    {
+                        GUILayout.BeginVertical();
+                        // var enabled = GUILayout.Toggle(filter.enabled, $"Station Types");
+                        var value1 = GUILayout.Toggle(filter.value > 0.5, $"Planetary") ? 1 : 0;
+                        var value2 = GUILayout.Toggle(filter.value2 > 0.5, $"Stellar") ? 1 : 0;
+                        var value3 = GUILayout.Toggle(filter.value3 > 0.5, $"Collector") ? 1 : 0;
+
+                        var shouldUpdateFiltered = ( filter.value != value1 || filter.value2 != value2 || filter.value3 != value3);
+                        // filter.enabled = enabled;
+                        filter.value = value1;
+                        filter.value2 = value2;
+                        filter.value3 = value3;
+                        GUILayout.EndVertical();
+                        return shouldUpdateFiltered;
+                    },
+                    LINQFilter = (filter, source) =>
+                    {
+                        return source.Where(sg => (!sg.station.stationComponent.isStellar && filter.value > 0.5)
+                                                || (sg.station.stationComponent.isStellar && filter.value2 > 0.5)
+                                                || (sg.station.stationComponent.isCollector && filter.value3 > 0.5)
+                                                );
+                    }
+                };
+
+                Filter<ResStationGroup> itemLogTypeFilter = new Filter<ResStationGroup>()
+                {
+                    enabled = true,
+                    value = 1,
+                    value2 = 1,
+                    value3 = 1,
+                    value4 = 1,
+                    value5 = 1,
+                    value6 = 1,
+                    onGUI = (filter) =>
+                    {
+                        GUILayout.BeginVertical();
+                        // var enabled = GUILayout.Toggle(filter.enabled, $"Station Types");
+
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label("Supply", textAlignStyle, GUILayout.Width(60));
+                        var value1 = GUILayout.Toggle(filter.value > 0.5, $"L") ? 1 : 0;
+                        var value2 = GUILayout.Toggle(filter.value2 > 0.5, $"R") ? 1 : 0;
+                        GUILayout.EndHorizontal();
+
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label("Demand", textAlignStyle, GUILayout.Width(60));
+                        var value3 = GUILayout.Toggle(filter.value3 > 0.5, $"L") ? 1 : 0;
+                        var value4 = GUILayout.Toggle(filter.value4 > 0.5, $"R") ? 1 : 0;
+                        GUILayout.EndHorizontal();
+
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label("Storage", textAlignStyle, GUILayout.Width(60));
+                        var value5 = GUILayout.Toggle(filter.value5 > 0.5, $"L") ? 1 : 0;
+                        var value6 = GUILayout.Toggle(filter.value6 > 0.5, $"R") ? 1 : 0;
+                        GUILayout.EndHorizontal();
+
+
+                        /*
+                        var value1 = GUILayout.Toggle(filter.value > 0.5, $"Supply") ? 1 : 0;
+                        var value2 = GUILayout.Toggle(filter.value2 > 0.5, $"Demand") ? 1 : 0;
+                        var value3 = GUILayout.Toggle(filter.value3 > 0.5, $"Storage") ? 1 : 0;
+                        */
+
+                        var shouldUpdateFiltered = (filter.value != value1 || filter.value2 != value2 || filter.value3 != value3 
+                                                 || filter.value4 != value4 || filter.value5 != value5 || filter.value6 != value6);
+
+                        // filter.enabled = enabled;
+                        filter.value = value1;
+                        filter.value2 = value2;
+                        filter.value3 = value3;
+                        filter.value4 = value4;
+                        filter.value5 = value5;
+                        filter.value6 = value6;
+                        GUILayout.EndVertical();
+                        return shouldUpdateFiltered;
+                    },
+                    LINQFilter = (filter, source) =>
+                    {
+                        return source.Where(sg =>  (sg.product.item.localLogic  == ELogisticStorage.Supply  && filter.value > 0.5)
+                                                || (sg.station.stationComponent.isStellar && sg.product.item.remoteLogic == ELogisticStorage.Supply  && filter.value2 > 0.5)
+                                                || (sg.product.item.localLogic  == ELogisticStorage.Demand  && filter.value3 > 0.5)
+                                                || (sg.station.stationComponent.isStellar && sg.product.item.remoteLogic == ELogisticStorage.Demand  && filter.value4 > 0.5)
+                                                || (sg.product.item.localLogic  == ELogisticStorage.None    && filter.value5 > 0.5)
+                                                || (sg.station.stationComponent.isStellar && sg.product.item.remoteLogic == ELogisticStorage.None    && filter.value6 > 0.5)
+                                                );
+                    }
+                };
+
+                AddFilterToTabs(stationTypeFilter, new List<eTAB_TYPES> { eTAB_TYPES.TAB_PLANET, eTAB_TYPES.TAB_LOGISTICS, eTAB_TYPES.TAB_RESOURCE });
+                AddFilterToTabs(itemLogTypeFilter, new List<eTAB_TYPES> { eTAB_TYPES.TAB_PLANET, eTAB_TYPES.TAB_LOGISTICS, eTAB_TYPES.TAB_RESOURCE });
+
+                AddFilterToTabs(stationItemAmountFilter, new List<eTAB_TYPES> { eTAB_TYPES.TAB_PLANET, eTAB_TYPES.TAB_LOGISTICS, eTAB_TYPES.TAB_RESOURCE });
+                AddFilterToTabs(stationWarpAmountFilter, new List<eTAB_TYPES> { eTAB_TYPES.TAB_PLANET, eTAB_TYPES.TAB_LOGISTICS, eTAB_TYPES.TAB_RESOURCE });
+            }
+
+            public void AddFiltersToTab(eTAB_TYPES tab, IEnumerable<Filter<ResStationGroup>> filters)
+            {
+                foreach (var filter in filters)
+                {
+                    TabFilters[tab].Add(filter);
+                }
+            }
+            public void AddFilterToTabs(Filter<ResStationGroup> filter, IEnumerable<eTAB_TYPES> tabs)
+            {
+                foreach (var tab in tabs)
+                {
+                    TabFilters[tab].Add(filter);
                 }
             }
 
@@ -470,7 +728,11 @@ namespace DSPPlugins_ALT.GUI
             {
                 bool shouldUpdateFiltered = false;
 
-                GUILayout.Label($"<b>Filters</b>", textAlignStyle, GUILayout.Width(100));
+                GUILayout.BeginVertical(GUILayout.MaxWidth(80));
+                GUILayout.Label($"<b>Filters</b>", textAlignStyle);
+                GUILayout.Label($"({TabFilterInfo[selectedTab].ItemsAfter}/{TabFilterInfo[selectedTab].ItemsBefore})", textAlignStyle);
+                GUILayout.EndVertical();
+
                 foreach (var filter in TabFilters[selectedTab])
                 {
                     GUILayout.BeginHorizontal(GUILayout.MaxWidth(150));
@@ -494,13 +756,20 @@ namespace DSPPlugins_ALT.GUI
                         GUILayout.BeginHorizontal();
                     }
                     GUILayout.BeginVertical(UnityEngine.GUI.skin.box, GUILayout.Width(1.0f * MaxWidth), GUILayout.MaxWidth(1.0f * MaxWidth));
-                    GUILayout.BeginHorizontal(GUILayout.Width(1.0f * MaxWidth), GUILayout.MaxWidth(1.0f * MaxWidth), GUILayout.MinHeight(50));
+                    GUILayout.BeginVertical(GUILayout.Width(1.0f * MaxWidth), GUILayout.MaxWidth(1.0f * MaxWidth), GUILayout.MinHeight(50));
                     GUILayout.Label($"{station.station.name}", textAlignStyle, GUILayout.Width(0.98f * MaxWidth));
-                    GUILayout.EndHorizontal();
                     if (station.station.stationComponent.isCollector)
                     {
                         GUILayout.Label($"Collector", textAlignStyle);
                     }
+                    else if (station.station.stationComponent.isStellar)
+                    {
+                        GUILayout.Label($"Warpers: {station.station.stationComponent.warperCount}", textAlignStyle);
+                    }
+                    GUILayout.Label($"{DSPHelper.PositionToLatLon(station.station.stationPosition)}", textAlignStyle, LocationColWidth);
+                    GUILayout.EndVertical();
+
+
 
                     GUILayout.Label($"Planet: {station.station.planetData.name.Translate()}", textAlignStyle, GUILayout.Width(0.96f * MaxWidth));
                     GUILayout.Label($"Amount: {station.product.item.count}/{station.product.item.max}", textAlignStyle, GUILayout.Width(0.86f * MaxWidth));
@@ -545,6 +814,7 @@ namespace DSPPlugins_ALT.GUI
                             {
                                 GUILayout.Label($"Warpers: {statProdGroup.station.stationComponent.warperCount}", textAlignStyle);
                             }
+                            GUILayout.Label($"{DSPHelper.PositionToLatLon(statProdGroup.station.stationPosition)}", textAlignStyle, LocationColWidth);
                             GUILayout.EndVertical();
                             foreach (var product in statProdGroup.products)
                             {
@@ -593,9 +863,9 @@ namespace DSPPlugins_ALT.GUI
                         { new PresOrderTuple() { name= "Interstellar Supply", stations=interstellarSupply, style=supplyStyle}},
                         { new PresOrderTuple() { name= "Interstellar Demand", stations=interstellarDemand, style=demandStyle}},
                         { new PresOrderTuple() { name= "Interstellar Storage", stations=interstellarNone, style=textAlignStyle}},
-                        { new PresOrderTuple() { name= "Local Supply", stations=localSupply, style=supplyStyle}},
-                        { new PresOrderTuple() { name= "Local Demand", stations=localDemand, style=demandStyle}},
-                        { new PresOrderTuple() { name= "Local Storage", stations=localNone, style=textAlignStyle}}
+                        { new PresOrderTuple() { name= "Planetary Supply", stations=localSupply, style=supplyStyle}},
+                        { new PresOrderTuple() { name= "Planetary Demand", stations=localDemand, style=demandStyle}},
+                        { new PresOrderTuple() { name= "Planetary Storage", stations=localNone, style=textAlignStyle}}
                     };
 
                         foreach (var pres in presOrder)
@@ -614,32 +884,6 @@ namespace DSPPlugins_ALT.GUI
                         }
                     }
                 }
-            }
-            public void InitFilters()
-            {
-                Filter<ResStationGroup> stationItemAmountFilter = new Filter<ResStationGroup>()
-                {
-                    enabled = true,
-                    value = 50,
-                    onGUI = (filter) =>
-                    {
-                        GUILayout.BeginVertical();
-                        var enabled = GUILayout.Toggle(filter.enabled, $"Amount %: {filter.value.ToString("F0")}");
-                        var value = GUILayout.HorizontalSlider(filter.value, 0, 100);
-                        var shouldUpdateFiltered = (filter.enabled != enabled || filter.value != value);
-                        filter.enabled = enabled;
-                        filter.value = value;
-                        GUILayout.EndVertical();
-                        return shouldUpdateFiltered;
-                    },
-                    LINQFilter = (filter, source) =>
-                    {
-                        return source.Where(sg => Math.Min((float)sg.product.item.count / sg.product.item.max, 1) <= (filter.value / 100));
-                    }
-                };
-                TabFilters[eTAB_TYPES.TAB_PLANET].Add(stationItemAmountFilter);
-                TabFilters[eTAB_TYPES.TAB_LOGISTICS].Add(stationItemAmountFilter);
-                TabFilters[eTAB_TYPES.TAB_RESOURCE].Add(stationItemAmountFilter);
             }
         }
 
@@ -688,6 +932,12 @@ namespace DSPPlugins_ALT.GUI
 
             GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
             DSPStatSources[selectedTabSourceType].DrawFilterGUI();
+            GUILayout.FlexibleSpace();
+            GUILayout.BeginVertical();
+            DSPStatSources[selectedTabSourceType].ShouldAutoUpdate = GUILayout.Toggle(DSPStatSources[selectedTabSourceType].ShouldAutoUpdate, $"AutoRefresh");
+            GUILayout.EndVertical();
+
+            
             GUILayout.EndHorizontal();
 
             sv = GUILayout.BeginScrollView(sv, UnityEngine.GUI.skin.box);

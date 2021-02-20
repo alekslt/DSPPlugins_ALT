@@ -23,5 +23,6 @@ namespace DSPPlugins_ALT
         internal PowerNetwork powerNetwork;
         internal MinerComponent minerComponent;
         internal float consumerRatio;
+        internal float minutesToEmptyVein;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace DSPPlugins_ALT.Statistics
 {
@@ -8,5 +9,6 @@ namespace DSPPlugins_ALT.Statistics
         internal PlanetData planetData;
         internal string name;
         internal StationComponent stationComponent;
+        internal Vector3 stationPosition;
     };
 }
