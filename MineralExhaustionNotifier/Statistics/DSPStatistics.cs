@@ -10,7 +10,7 @@ namespace DSPPlugins_ALT.Statistics
     {
         class NotificationTiming { public long lastNotification; public long lastUpdated; };
 
-        public static Dictionary<string,List<MinerNotificationDetail>> notificationList = new Dictionary<string,List<MinerNotificationDetail>>();
+        //public static Dictionary<string,List<MinerNotificationDetail>> notificationList = new Dictionary<string,List<MinerNotificationDetail>>();
         Dictionary<int, NotificationTiming> notificationTimes = new Dictionary<int, NotificationTiming>();
         public bool triggerNotification = false;
 
@@ -64,7 +64,7 @@ namespace DSPPlugins_ALT.Statistics
         }
 
         public void prioritizeList()
-        {
+        {/*
             foreach (var planet in DSPStatistics.notificationList)
             {
                 planet.Value.Sort(delegate (MinerNotificationDetail x, MinerNotificationDetail y)
@@ -75,6 +75,7 @@ namespace DSPPlugins_ALT.Statistics
                     return 0;
                 });
             }
+            */
         }
 
 
@@ -83,7 +84,7 @@ namespace DSPPlugins_ALT.Statistics
             if (time - lastTime < (MineralExhaustionNotifier.timeStepsSecond * MineralExhaustionNotifier.CheckPeriodSeconds.Value)) { return; }
             lastTime = time;
 
-            notificationList.Clear();
+            //notificationList.Clear();
             minerStats.Clear();
             logisticsStationStats.Clear();
 
@@ -201,10 +202,12 @@ namespace DSPPlugins_ALT.Statistics
 
             //if (veinAmount < MineralExhaustionNotifier.VeinAmountThreshold.Value || signType != SignData.NONE)
             {
+                /*
                 if (!notificationList.ContainsKey(factory.planet.displayName))
                 {
                     notificationList.Add(factory.planet.displayName, new List<MinerNotificationDetail>());
                 }
+                */
 
                 Texture2D texture = null;
                 
@@ -255,7 +258,7 @@ namespace DSPPlugins_ALT.Statistics
                     consumerRatio = consumerRatio
                 };
                 minerStats.Add(minerStat);
-                notificationList[factory.planet.displayName].Add(minerStat); ;
+                //notificationList[factory.planet.displayName].Add(minerStat); ;
 
                 return true;
             }

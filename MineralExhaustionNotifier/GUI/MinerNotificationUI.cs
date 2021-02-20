@@ -228,17 +228,19 @@ namespace DSPPlugins_ALT.GUI
         public class DSPStatSourceVeinMiners : DSPStatSource
         {
             public IEnumerable<MinerNotificationDetail> Source;
-            public Dictionary<eTAB_TYPES, IEnumerable<MinerNotificationDetail>> FilteredSource;
+            public Dictionary<eTAB_TYPES, IEnumerable<MinerNotificationDetail>> FilteredSource = new Dictionary<eTAB_TYPES, IEnumerable<MinerNotificationDetail>>();
             public Dictionary<eTAB_TYPES, IList<Filter<MinerNotificationDetail>>> TabFilters = new Dictionary<eTAB_TYPES, IList<Filter<MinerNotificationDetail>>>();
 
             public DSPStatSourceVeinMiners()
             {
-                foreach (eTAB_TYPES tabType in Enum.GetValues(typeof(eTAB_TYPES)))
+                TABPages = new List<eTAB_TYPES>() { eTAB_TYPES.TAB_PLANET, eTAB_TYPES.TAB_NETWORK, eTAB_TYPES.TAB_RESOURCE };
+                foreach (eTAB_TYPES tabType in TABPages)
                 {
                     TabFilters[tabType] = new List<Filter<MinerNotificationDetail>>();
                 }
-                TABPages = new List<eTAB_TYPES>() { eTAB_TYPES.TAB_PLANET, eTAB_TYPES.TAB_NETWORK, eTAB_TYPES.TAB_RESOURCE };
+                
                 InitFilters();
+                UpdateSource();
             }
             public override void UpdateSource()
             {
@@ -336,12 +338,13 @@ namespace DSPPlugins_ALT.GUI
             public override void DrawTabGUI()
             {
                 // var minersAll = FilteredSource[selectedTab];
+                var minersByPlanet = FilteredSource[selectedTab].GroupBy(m => m.planetName).OrderBy(g => g.Key);
                 // IOrderedEnumerable<IGrouping<Object, MinerNotificationDetail>> miners;
-                var minersAll = DSPStatistics.notificationList.Values.SelectMany(x => x).ToList();
+                //var minersAll = DSPStatistics.notificationList.Values.SelectMany(x => x).ToList();
 
                 if (selectedTab == eTAB_TYPES.TAB_PLANET)
                 {
-                    foreach (var planet in DSPStatistics.notificationList)
+                    foreach (var planet in minersByPlanet)
                     {
                         GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
                         GUILayout.Label($"<b>Planet {planet.Key}</b>", textAlignStyle);
@@ -349,30 +352,26 @@ namespace DSPPlugins_ALT.GUI
 
                         DrawVeinMinersHeader();
 
-                        var filters = TabFilters[selectedTab];
-                        IEnumerable<MinerNotificationDetail> filteredMiners = planet.Value.Select(a => a);
-                        foreach (var filter in filters.Where(f => f.enabled == true))
-                        {
-                            filteredMiners = filter.LINQFilter(filter, filteredMiners);
-                        }
-                        DrawVeinMiners(filteredMiners);
+                        DrawVeinMiners(planet);
                     }
                 }
                 else if (selectedTab == eTAB_TYPES.TAB_NETWORK)
                 {
-                    foreach (var planet in DSPStatistics.notificationList)
+                    foreach (var planet in minersByPlanet)
                     {
                         GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
                         GUILayout.Label($"<b>Planet {planet.Key}</b>", textAlignStyle);
                         GUILayout.EndHorizontal();
 
+                        var planetNetGroups = planet.OrderBy(m => m.veinAmount).GroupBy(m => m.powerNetwork).OrderBy(ng => ng.Key.id);   
+                            /*
                         var miners = (from miner in planet.Value
                                       orderby miner.veinAmount
                                       group miner by miner.powerNetwork into netGroup
                                       orderby netGroup.Key.id
-                                      select netGroup);
+                                      select netGroup);*/
 
-                        foreach (var netGroup in miners)
+                        foreach (var netGroup in planetNetGroups)
                         {
                             GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
                             GUILayout.Label($"<b>PowerNetwork {netGroup.Key.id} - Health: {Math.Round(netGroup.Key.consumerRatio * 100, 0) }</b>", textAlignStyle, GUILayout.Width(260));
@@ -385,9 +384,10 @@ namespace DSPPlugins_ALT.GUI
                 }
                 else if (selectedTab == eTAB_TYPES.TAB_RESOURCE)
                 {
-                    var minersTest = minersAll.OrderByDescending(miner => miner.veinAmount);
-                    var minersTestGroup = minersTest.GroupBy(x => x.veinName).OrderBy(g => g.Key);
-                    var miners = minersTestGroup.Select(mtg => new { Name = mtg.Key, Tex = mtg.First().resourceTexture, Miners = mtg.ToList(), SumMiningPerMin = mtg.Sum(m => m.miningRatePerMin) });
+                    var miners = FilteredSource[selectedTab]
+                                        .OrderByDescending(miner => miner.veinAmount)
+                                        .GroupBy(x => x.veinName).OrderBy(g => g.Key)
+                                        .Select(mtg => new { Name = mtg.Key, Tex = mtg.First().resourceTexture, Miners = mtg.ToList(), SumMiningPerMin = mtg.Sum(m => m.miningRatePerMin) });
 
                     foreach (var resourceGroup in miners)
                     {
@@ -437,7 +437,7 @@ namespace DSPPlugins_ALT.GUI
         public class DSPStatSourceLogisticStations : DSPStatSource
         {
             public IEnumerable<ResStationGroup> Source;
-            public Dictionary<eTAB_TYPES, IEnumerable<ResStationGroup>> FilteredSource;
+            public Dictionary<eTAB_TYPES, IEnumerable<ResStationGroup>> FilteredSource = new Dictionary<eTAB_TYPES, IEnumerable<ResStationGroup>>();
             public Dictionary<eTAB_TYPES, IList<Filter<ResStationGroup>>> TabFilters = new Dictionary<eTAB_TYPES, IList<Filter<ResStationGroup>>>();
 
             public DSPStatSourceLogisticStations()
@@ -448,6 +448,7 @@ namespace DSPPlugins_ALT.GUI
                 }
                 TABPages = new List<eTAB_TYPES>() { eTAB_TYPES.TAB_PLANET, eTAB_TYPES.TAB_RESOURCE };
                 InitFilters();
+                UpdateSource();
             }
 
             public override void UpdateSource()
@@ -520,18 +521,9 @@ namespace DSPPlugins_ALT.GUI
 
             public override void DrawTabGUI()
             {
-                var logStationProducts = DSPStatistics.logisticsStationStats.SelectMany(station => station.products, (station, product) => new ResStationGroup() { station = station, product = product });
-
-                var filters = TabFilters[selectedTab];
-                IEnumerable<ResStationGroup> filteredLogStationProducts = logStationProducts;
-                foreach (var filter in filters.Where(f => f.enabled == true))
-                {
-                    filteredLogStationProducts = filter.LINQFilter(filter, filteredLogStationProducts);
-                }
-
                 if (selectedTab == eTAB_TYPES.TAB_PLANET)
                 {
-                    var productsPerStation = filteredLogStationProducts.GroupBy(pair => pair.station, (group, pairList) => new { station = group, products = pairList });
+                    var productsPerStation = FilteredSource[selectedTab].GroupBy(pair => pair.station, (group, pairList) => new { station = group, products = pairList });
                     var stationsPerPlanet = productsPerStation.GroupBy(pair => pair.station.planetData, (group, pairList) => new { planet = group, stations = pairList });
 
                     foreach (var stationsPlanetGroup in stationsPerPlanet)
@@ -574,7 +566,7 @@ namespace DSPPlugins_ALT.GUI
                 }
                 else if (selectedTab == eTAB_TYPES.TAB_RESOURCE)
                 {
-                    var stationsPerResource = filteredLogStationProducts.GroupBy(pair => pair.product.item.itemId, pair => new ResStationGroup() { station = pair.station, product = pair.product });
+                    var stationsPerResource = FilteredSource[selectedTab].GroupBy(pair => pair.product.item.itemId, pair => new ResStationGroup() { station = pair.station, product = pair.product });
 
                     foreach (var resource in stationsPerResource)
                     {
@@ -635,6 +627,8 @@ namespace DSPPlugins_ALT.GUI
                         var enabled = GUILayout.Toggle(filter.enabled, $"Amount %: {filter.value.ToString("F0")}");
                         var value = GUILayout.HorizontalSlider(filter.value, 0, 100);
                         var shouldUpdateFiltered = (filter.enabled != enabled || filter.value != value);
+                        filter.enabled = enabled;
+                        filter.value = value;
                         GUILayout.EndVertical();
                         return shouldUpdateFiltered;
                     },
