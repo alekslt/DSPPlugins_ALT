@@ -10,7 +10,7 @@ namespace DSPPlugins_ALT.Statistics
     {
         class NotificationTiming { public long lastNotification; public long lastUpdated; };
 
-        //public static Dictionary<string,List<MinerNotificationDetail>> notificationList = new Dictionary<string,List<MinerNotificationDetail>>();
+        public event Action<long> onStatSourcesUpdated;
         Dictionary<int, NotificationTiming> notificationTimes = new Dictionary<int, NotificationTiming>();
         public bool triggerNotification = false;
 
@@ -23,6 +23,16 @@ namespace DSPPlugins_ALT.Statistics
 
         public static List<MinerNotificationDetail> minerStats = new List<MinerNotificationDetail>();
         public static List<StationStat> logisticsStationStats = new List<StationStat>();
+
+        public void Reset()
+        {
+            lastTime = 0;
+            minerStats.Clear();
+            logisticsStationStats.Clear();
+            notificationTimes.Clear();
+            triggerNotification = false;
+        }
+
 
         public void updateNotificationTimes(long time)
         {
@@ -63,24 +73,25 @@ namespace DSPPlugins_ALT.Statistics
             }
         }
 
-        public void prioritizeList()
-        {/*
-            foreach (var planet in DSPStatistics.notificationList)
-            {
-                planet.Value.Sort(delegate (MinerNotificationDetail x, MinerNotificationDetail y)
-                {
-                    if (x.veinAmount == y.veinAmount) return 0;
-                    else if (x.veinAmount < y.veinAmount) return -1;
-                    else if (x.veinAmount > y.veinAmount) return 1;
-                    return 0;
-                });
-            }
-            */
-        }
+        private GameDesc lastGameDesc = null;
 
+        public bool IsDifferentGame()
+        {
+            if (DSPGame.GameDesc != lastGameDesc)
+            {
+                lastGameDesc = DSPGame.GameDesc;
+                return true;
+            }
+            return false;
+        }
 
         public void onGameData_GameTick(long time, GameData gameData)
         {
+            if (IsDifferentGame())
+            {
+                Reset();
+            }
+
             if (time - lastTime < (MineralExhaustionNotifier.timeStepsSecond * MineralExhaustionNotifier.CheckPeriodSeconds.Value)) { return; }
             lastTime = time;
 
@@ -112,14 +123,11 @@ namespace DSPPlugins_ALT.Statistics
             }*/
 
             updateNotificationTimes(time);
-            prioritizeList();
             if (onStatSourcesUpdated != null)
             {
                 onStatSourcesUpdated(time);
             }
         }
-
-        public event Action<long> onStatSourcesUpdated;
 
         public void stationStatUpdate(StationComponent stationComponent, PlanetFactory factory)
         {

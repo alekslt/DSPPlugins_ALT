@@ -15,7 +15,11 @@ After launching one time there will be a config file you can edit in %steamapps\
 
 ## How to use the Mineral Exhaustion Notifier mod ?
 
-The plugin will periodically check the miners for an alarm (Low Power, Low Production Yield), and/or if they remaining mineral they can mine is low or none.
+This mod gathers information on vein miners and logistic stations and present this information in a window allowing you to group by planet, resource and power network.
+
+You can also filter what is shown by several filters to drill down to what you want to know. Mining rate, logistic station - item stock, ++.
+
+The plugin will periodically check the miners for an alarm (Low Power, Low Production Yield), and/or if the remaining mineral they can mine is low or none.
 
 If a miner is detected with this condition a first time notification window will pop up, but afterwards only available through the toggle button (M) on lower right,
 or by pressing the hot key.
@@ -24,7 +28,7 @@ If you have cleared out all faulty miners by default this will allow a popup not
 
 #### Quick Key map (configurable) : 
 
-* I : Toggle Mineral Vein Information Window
+* ALT-I : Toggle Mineral Vein Information Window
 
 ## Screenshots
 
@@ -34,17 +38,17 @@ If you have cleared out all faulty miners by default this will allow a popup not
 
 ## Changes in last release
 
-### MineralExhaustionNotified v0.4
+### MineralExhaustionNotified v0.5
 
-* v0.4.1 - Fixes a nullpointer exception when starting a new game.
-
-* Fixed the issue where vein type was none for completely exhausted veins.
-* Added textures for the resources/veins and for the menu button.
-* Calculate estimated time until exhaustion for the veins.
+* Added information on logistic stations and their items as well
+* Filtering options. Filters are logically AND between the filters, and OR for the filter-local. Meaning you can do queries like: Stellar Stations AND Item % below 50%, AND Supply Remote.
+* Show information from the data source ( Vein Miners or Logistic Stations) broken down into different groups. Planet style as it was, or Resource based to get a better understanding of everything related to titanium.
+* Keybinding is now changed! You need to press an ALT-key before the user bindable key (default I)
 
 
 ## Verified working with game versions
 
+* Dyson Sphere Project 0.6.16.5780
 * Dyson Sphere Project 0.6.16.5759
 * Dyson Sphere Project 0.6.15.5706
 * Dyson Sphere Project 0.6.15.5686

@@ -292,7 +292,7 @@ namespace DSPPlugins_ALT.GUI
                 Filter<MinerNotificationDetail> miningRateFilter = new Filter<MinerNotificationDetail>()
                 {
                     name = "miningRateFilter",
-                    enabled = true,
+                    enabled = false,
                     value = 100,
                     onGUI = (filter) =>
                     {
@@ -314,7 +314,7 @@ namespace DSPPlugins_ALT.GUI
                 Filter<MinerNotificationDetail> miningRateSummedFilter = new Filter<MinerNotificationDetail>()
                 {
                     name = "miningRateSummedFilter",
-                    enabled = true,
+                    enabled = false,
                     value = 3000,
                     onGUI = (filter) =>
                     {
@@ -567,7 +567,7 @@ namespace DSPPlugins_ALT.GUI
             {
                 Filter<ResStationGroup> stationItemAmountFilter = new Filter<ResStationGroup>()
                 {
-                    enabled = true,
+                    enabled = false,
                     value = 50,
                     onGUI = (filter) =>
                     {
