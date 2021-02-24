@@ -87,12 +87,15 @@ namespace DSPPlugins_ALT.GUI
         */
 
         //public static Dictionary<eTAB_SOURCE_TYPE, Dictionary<eTAB_TYPES, IList<Filter>>> TabFilters = new Dictionary<eTAB_SOURCE_TYPE, Dictionary<eTAB_TYPES, IList<Filter>>>();
+        public static int ScaledScreenWidth { get; set; } = 1920;
+        public static int ScaledScreenHeight { get; set; } = 1080;
 
-
-        public static void AutoResize(int screenWidth, int screenHeight)
+        public static void AutoResize(int designScreenHeight)
         {
-            Vector2 resizeRatio = new Vector2((float)Screen.width / screenWidth, (float)Screen.height / screenHeight);
-            UnityEngine.GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(resizeRatio.x, resizeRatio.y, 1.0f));
+            float ratio = (float)Screen.height / designScreenHeight;
+            // Vector2 resizeRatio = new Vector2((float)Screen.width / screenWidth, (float)Screen.height / screenHeight);
+            ScaledScreenWidth = (int)Math.Round(Screen.width / ratio);
+            UnityEngine.GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(ratio, ratio, 1.0f));
         }
 
         private void Init()
@@ -179,7 +182,7 @@ namespace DSPPlugins_ALT.GUI
 
         public void OnGUI()
         {
-            AutoResize(1920, 1080);
+            AutoResize(1080);
             var uiGame = BGMController.instance.uiGame;
             var shouldShowByGameState = DSPGame.GameDesc != null && uiGame != null && uiGame.gameData != null && uiGame.guideComplete && DSPGame.IsMenuDemo == false && DSPGame.Game.running && (UIGame.viewMode == EViewMode.Normal || UIGame.viewMode == EViewMode.Sail) &&
                 !(uiGame.techTree.active || uiGame.dysonmap.active || uiGame.starmap.active || uiGame.escMenu.active || uiGame.hideAllUI0 || uiGame.hideAllUI1) && uiGame.gameMenu.active;
