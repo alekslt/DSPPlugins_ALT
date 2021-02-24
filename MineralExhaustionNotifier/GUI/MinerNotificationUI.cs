@@ -115,7 +115,10 @@ namespace DSPPlugins_ALT.GUI
                 }
             }
 
-            menu_button_texture = Resources.Load<Texture2D>("ui/textures/sprites/round-64px-border-slice");
+            //"ui/textures/sprites/round-64px-border-slice"
+            // ui/textures/sprites/sci-fi/crystal-btn-trans
+            // "auxes/rts/circle-tex-1"
+            menu_button_texture = Resources.Load<Texture2D>("auxes/rts/circle-tex-1");
             if (menu_button_texture == null)
             {
                 Debug.LogWarning("Failed Loading menu_button_texture");
@@ -145,7 +148,7 @@ namespace DSPPlugins_ALT.GUI
             menuButton.normal.background = menuButton.hover.background = menuButton.active.background = menu_button_texture;
             
             menuButton.normal.textColor = Color.white;
-            menuButton.fontSize = 21;
+            menuButton.fontSize = 16;
 
             menuButtonHighlighted = new GUIStyle(menuButton);
             menuButtonHighlighted.normal.textColor = Color.red;
@@ -162,7 +165,7 @@ namespace DSPPlugins_ALT.GUI
             VeinIconLayoutOptions = new GUILayoutOption[] { GUILayout.Height(35), GUILayout.MaxWidth(35) };
             VeinIconLayoutSmallOptions = new GUILayoutOption[] { GUILayout.Height(30), GUILayout.MaxWidth(30) };
 
-            MenuButtonLayoutOptions = new GUILayoutOption[] { GUILayout.Height(45), GUILayout.MaxWidth(45) };
+            MenuButtonLayoutOptions = new GUILayoutOption[] { GUILayout.Height(42), GUILayout.MaxWidth(42) };
 
             tabMenuButton = new GUIStyle(UnityEngine.GUI.skin.button);
             tabMenuButton.normal.background = tabMenuButton.hover.background = tabMenuButton.active.background = tab_menu_button_texture;
@@ -204,15 +207,24 @@ namespace DSPPlugins_ALT.GUI
 
             if (ShowButton && shouldShowByGameState)
             {
-                Rect buttonWinRect = new Rect(Screen.width - 120, Screen.height - 46, 45, 45);
-                var activeStyle = HighlightButton ? menuButtonHighlighted : menuButton;
-                GUILayout.BeginArea(buttonWinRect);
-                if (GUILayout.Button("M", activeStyle, MenuButtonLayoutOptions))
-                {
-                    Show = !Show;
-                }
-                GUILayout.EndArea();
+                DrawMenuButton();
             }
+        }
+
+        // X,Y - 123, 46 = Bottom, 45, 128 = Right under stat
+        public int MenuButtonXOffset { get; set; } = 45;
+        public int MenuButtonYOffset { get; set; } = 128;
+
+        private void DrawMenuButton()
+        {
+            Rect buttonWinRect = new Rect(ScaledScreenWidth - MenuButtonXOffset, ScaledScreenHeight - MenuButtonYOffset, 42, 42);
+            var activeStyle = HighlightButton ? menuButtonHighlighted : menuButton;
+            GUILayout.BeginArea(buttonWinRect);
+            if (GUILayout.Button("M", activeStyle, MenuButtonLayoutOptions))
+            {
+                Show = !Show;
+            }
+            GUILayout.EndArea();
         }
 
         private static string GetSourceTabName(eTAB_SOURCE_TYPE tabType)
