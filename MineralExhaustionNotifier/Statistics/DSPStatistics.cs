@@ -18,7 +18,7 @@ namespace DSPPlugins_ALT.Statistics
         long notificationWindowHigh = MineralExhaustionNotifier.timeStepsSecond * 60;
         long notificationPruneTime = MineralExhaustionNotifier.timeStepsSecond * 30;
         public long lastTriggeredNotification = 0;
-        public bool firstTimeNotification = true;
+        public bool firstTimeNotification = false;
         static long lastTime = 0;
 
         public static List<MinerNotificationDetail> minerStats = new List<MinerNotificationDetail>();
