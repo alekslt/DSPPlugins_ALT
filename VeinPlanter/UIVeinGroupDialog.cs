@@ -1,7 +1,9 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
 
@@ -88,9 +90,10 @@ namespace VeinPlanter
 		public bool OnGUI(float containerWidth, params GUILayoutOption[] options)
 		{
 			int oldIndexNumber = indexNumber;
+			GUILayout.BeginHorizontal(GUILayout.MinWidth(containerWidth));
 			if (show)
 			{
-				scrollViewVector = GUILayout.BeginScrollView(scrollViewVector, UnityEngine.GUI.skin.box, GUILayout.Width(containerWidth));
+				scrollViewVector = GUILayout.BeginScrollView(scrollViewVector, UnityEngine.GUI.skin.box);
 
 				//scrollViewVector = GUI.BeginScrollView(new Rect((dropDownRect.x - 100), (dropDownRect.y + 25), dropDownRect.width, dropDownRect.height), scrollViewVector, new Rect(0, 0, dropDownRect.width, Mathf.Max(dropDownRect.height, (list.Length * 25))));
 
@@ -119,6 +122,7 @@ namespace VeinPlanter
 				}
 				GUILayout.EndHorizontal();
 			}
+			GUILayout.EndHorizontal();
 
 			return oldIndexNumber != indexNumber;
 		}
@@ -132,10 +136,10 @@ namespace VeinPlanter
 
 	public class UIVeinGroupDialog
     {
-        private static Rect winRect = new Rect(0, 0, 400, 150);
+        private static Rect winRect = new Rect(0, 0, 450, 200);
 		public Boolean Show { get; set; } = false;
-		
-		public GUISkin customSkin = null;
+
+		// private static GUISkin customSkin = null;
 
 		public DropDownGUILayout<ListItem> dropdown = new DropDownGUILayout<ListItem>();
 
@@ -143,9 +147,11 @@ namespace VeinPlanter
 
 		public int veinGroupIndex { get; set; }
 
-		GUILayoutOption[] VeinIconLayoutOptions;
-		GUIStyle windowStyle;
-		GUIStyle buttonStyle;
+		private static GUILayoutOption[] VeinIconLayoutOptions;
+		private static GUIStyle windowStyle;
+		private static GUIStyle buttonStyle;
+
+		private static Texture2D DialogueBackgroundTexture;
 
 		public bool DrawItem(ListItem t)
         {
@@ -218,22 +224,79 @@ namespace VeinPlanter
 
 			if (winRect.yMax > Screen.height)
 			{
-				winRect.y = Screen.height - winRect.height;
+				winRect.y = Screen.height - winRect.height-20;
 			}
 
 			winRect.x = Mathf.Max(0, winRect.x);
 			winRect.y = Mathf.Max(0, winRect.y);			
 		}
 
-		public void OnGUI()
+		public void Init()
         {
-			VeinIconLayoutOptions = new GUILayoutOption[] { GUILayout.MaxWidth(40),GUILayout.MinHeight(40)  };
+			Texture2D myImage = VeinPlanter.bundle.LoadAsset<Texture2D>("assets/window-dialog.png");
+
+			DialogueBackgroundTexture = Resources.Load<Texture2D>("ui/textures/sprites/sci-fi/window-glass-1");
+			if (DialogueBackgroundTexture == null)
+			{
+				Debug.LogWarning("Failed Loading menu_button_texture");
+				DialogueBackgroundTexture = Texture2D.blackTexture;
+			}
+
+			// colors used to tint the first 3 mip levels
+			// Color[] colors = new Color[3];
+			// colors[0] = Color.red;
+			// colors[1] = Color.green;
+			// colors[2] = Color.blue;
+
+			// Color tintColor = new Color(24/256.0f, 57/256.0f, 83/256.0f, 0.7f);
+
+			//int mipCount = Mathf.Min(3, DialogueBackgroundTextureL2.mipmapCount);
+
+			// tint each mip level
+			// for (int mip = 0; mip < mipCount; ++mip)
+			//{
+				//Color[] cols = DialogueBackgroundTextureL2.GetPixels();
+				//for (int i = 0; i < cols.Length; ++i)
+				//{
+				//	cols[i] = Color.Lerp(cols[i], tintColor, 0.33f);
+				//}
+				//DialogueBackgroundTextureL2.SetPixels(cols);
+			//}
+			// actually apply all SetPixels, don't recalculate mip levels
+			//DialogueBackgroundTextureL2.Apply(true);
+
+			VeinIconLayoutOptions = new GUILayoutOption[] { GUILayout.MaxWidth(40), GUILayout.MinHeight(40) };
 			buttonStyle = new GUIStyle(GUI.skin.box);
 			buttonStyle.wordWrap = true;
 
 			windowStyle = new GUIStyle(UnityEngine.GUI.skin.window);
-			windowStyle.border = new RectOffset(8,8,8,8);
-			windowStyle.padding.top = 10;
+			windowStyle.contentOffset = new Vector2(0,0);
+			windowStyle.border = new RectOffset(0, 0, 0, 0);
+			windowStyle.padding = new RectOffset(30, 30, 30, 30);
+			windowStyle.onActive.background = windowStyle.onFocused.background = windowStyle.onHover.background = windowStyle.onNormal.background = myImage;
+			windowStyle.normal.background = windowStyle.active.background = windowStyle.focused.background = windowStyle.hover.background = myImage;
+
+			isInit = true;
+		}
+
+		private static bool isInit = false;
+
+		public void OnGUI()
+		{
+			var uiGame = BGMController.instance.uiGame;
+			var shouldShowByGameState = DSPGame.GameDesc != null && uiGame != null && uiGame.gameData != null && uiGame.guideComplete && DSPGame.IsMenuDemo == false && DSPGame.Game.running && (UIGame.viewMode == EViewMode.Normal || UIGame.viewMode == EViewMode.Sail) &&
+				!(uiGame.techTree.active || uiGame.dysonmap.active || uiGame.starmap.active || uiGame.escMenu.active || uiGame.hideAllUI0 || uiGame.hideAllUI1) && uiGame.gameMenu.active;
+
+			//Show = shouldShowByGameState = DSPGame.MenuDemoLoaded;
+
+			if (!shouldShowByGameState)
+			{
+				return;
+			}
+
+			if (!isInit && GameMain.isRunning) { Init(); }
+
+
 			//windowStyle.contentOffset = new Vector2(0, 0);
 
 			if (Show)
@@ -269,9 +332,10 @@ namespace VeinPlanter
 			GUILayout.Box(texture, VeinIconLayoutOptions);
 			GUILayout.Box("Type "+ veinGroup.type + "\n" + veinName);
 			*/
+			GUILayout.BeginVertical(GUILayout.Width(150));
 			GUILayout.Label("Count " + veinGroup.count);
 			GUILayout.Label("Amount " + veinGroup.amount);
-
+			GUILayout.EndVertical();
 
 			GUILayout.EndHorizontal();
 		}
@@ -287,31 +351,30 @@ namespace VeinPlanter
             {
 				ref VeinData vein = ref localPlanet.factory.veinPool[i];
 				ref AnimData veinAnim = ref localPlanet.factory.veinAnimPool[i];
+
+				// Skip invalid veins and veins from other groups.
 				if (i != vein.id
 					|| vein.groupIndex != veinGroupIndex)
                 {
 					continue;
                 }
-				
-				vein.productId = PlanetModelingManager.veinProducts[veinTypeIndex];
-				vein.type = newType;
 
+				// Remove the old vein model instance from the GPU Instancing
 				localPlanet.factoryModel.gpuiManager.RemoveModel(vein.modelIndex, vein.modelId, setBuffer: false);
-				vein.modelIndex = (short)random.Next(PlanetModelingManager.veinModelIndexs[veinTypeIndex], PlanetModelingManager.veinModelIndexs[veinTypeIndex] + PlanetModelingManager.veinModelCounts[veinTypeIndex]);
+
+				vein.productId = PlanetModelingManager.veinProducts[veinTypeIndex];
+				vein.type = newType;				
+				vein.modelIndex = (short)random.Next(PlanetModelingManager.veinModelIndexs[veinTypeIndex],
+					PlanetModelingManager.veinModelIndexs[veinTypeIndex] + PlanetModelingManager.veinModelCounts[veinTypeIndex]);
+				vein.modelId = localPlanet.factoryModel.gpuiManager.AddModel(
+					vein.modelIndex, i, vein.pos, Maths.SphericalRotation(vein.pos,
+					UnityEngine.Random.value * 360f), setBuffer: false);
 
 				veinAnim.time = ((vein.amount < 20000) ? (1f - (float)vein.amount * 5E-05f) : 0f);
 				veinAnim.prepare_length = 0f;
 				veinAnim.working_length = 1f;
 				veinAnim.state = (uint)vein.type;
 				veinAnim.power = 0f;
-
-				vein.modelId = localPlanet.factoryModel.gpuiManager.AddModel(
-					vein.modelIndex, i, vein.pos, Maths.SphericalRotation(vein.pos,
-					UnityEngine.Random.value * 360f), setBuffer: false);
-
-				/*
-				GameMain.localPlanet.factoryModel.gpuiManager.AlterModel(vein.modelIndex, vein.modelId,
-					i, vein.pos, Maths.SphericalRotation(vein.pos, UnityEngine.Random.value * 360f));*/
 
 				GameMain.localPlanet.factory.RefreshVeinMiningDisplay(i, 0, 0);
 			}

@@ -45,12 +45,16 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>..\Libs\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule">
+      <HintPath>..\Libs\UnityEngine.AssetBundleModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\Libs\UnityEngine.CoreModule.dll</HintPath>
@@ -72,6 +76,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="..\..\..\..\..\..\Users\aleks\Documents\TestUnityProject\Assets\AssetBundles\veinplanter">
+      <Link>Resources\veinplanter</Link>
+    </EmbeddedResource>
     <None Include="VeinGen.cs" />
     <Compile Include="DropDown.cs" />
     <Compile Include="DSPExtensions.cs" />
@@ -81,6 +88,7 @@
     <Compile Include="Version.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\window-dialog.png" />
     <Content Include="Thunderstore\icon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

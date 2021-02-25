@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
 
@@ -33,12 +34,19 @@ namespace VeinPlanter
             }
         }
 
+        public static AssetBundle bundle;
+
         #region Unity Core Methods
         // Awake is called once when both the game and the plug-in are loaded
         void Awake()
         {
             InitConfig();
 
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("VeinPlanter.Resources.veinplanter"))
+            {
+                bundle = AssetBundle.LoadFromStream(stream);
+            }
+             
             UnityEngine.Debug.Log("VeinPlanter Plugin Loaded!");
             var harmony = new Harmony(VersionInfo.BEPINEX_FQDN_ID);
             harmony.PatchAll();
@@ -230,6 +238,9 @@ namespace VeinPlanter
                             veinGroupIndex = closestVeinGroupIndex,
                             Show = true
                         };
+                    } else
+                    {
+                        dialog = null;
                     }
 
                     switch (modMode)
