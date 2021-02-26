@@ -857,27 +857,26 @@ namespace DSPPlugins_ALT.GUI
                 }
                 else if (selectedTab == eTAB_TYPES.TAB_RESOURCE)
                 {
-                    var stationsPerResource = FilteredSource[selectedTab].GroupBy(pair => pair.product.item.itemId, pair => new ResStationGroup() { station = pair.station, product = pair.product });
+                    var stationsPerResource = FilteredSource[selectedTab].GroupBy(pair => pair.product.item.itemId, pair => new ResStationGroup() { station = pair.station, product = pair.product })
+                                .Select( grp => new { itemId = grp.Key, itemProto = LDB.items.Select(grp.Key), stations = grp }).OrderBy(grp => grp.itemProto.name.Translate());
 
                     foreach (var resource in stationsPerResource)
                     {
-                        ItemProto itemProto = LDB.items.Select(resource.Key);
-
-                        var resourceTexture = itemProto.iconSprite.texture;
+                        var resourceTexture = resource.itemProto.iconSprite.texture;
 
                         GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
                         GUILayout.Label($"<b>Resource</b>", textAlignStyle, GUILayout.Width(65));
                         GUILayout.Box(resourceTexture, VeinIconLayoutOptions);
-                        GUILayout.Label($"<b>{itemProto.Name.Translate()}</b>", textAlignStyle);
+                        GUILayout.Label($"<b>{resource.itemProto.Name.Translate()}</b>", textAlignStyle);
                         GUILayout.EndHorizontal();
 
-                        var interstellarDemand = resource.Where(s => s.station.stationComponent.isStellar && s.product.item.remoteLogic == ELogisticStorage.Demand);
-                        var interstellarSupply = resource.Where(s => s.station.stationComponent.isStellar && s.product.item.remoteLogic == ELogisticStorage.Supply);
-                        var interstellarNone = resource.Where(s => s.station.stationComponent.isStellar && s.product.item.remoteLogic == ELogisticStorage.None);
+                        var interstellarDemand = resource.stations.Where(s => s.station.stationComponent.isStellar && s.product.item.remoteLogic == ELogisticStorage.Demand);
+                        var interstellarSupply = resource.stations.Where(s => s.station.stationComponent.isStellar && s.product.item.remoteLogic == ELogisticStorage.Supply);
+                        var interstellarNone = resource.stations.Where(s => s.station.stationComponent.isStellar && s.product.item.remoteLogic == ELogisticStorage.None);
 
-                        var localDemand = resource.Where(s => !s.station.stationComponent.isStellar && s.product.item.localLogic == ELogisticStorage.Demand);
-                        var localSupply = resource.Where(s => !s.station.stationComponent.isStellar && s.product.item.localLogic == ELogisticStorage.Supply);
-                        var localNone = resource.Where(s => !s.station.stationComponent.isStellar && s.product.item.localLogic == ELogisticStorage.None);
+                        var localDemand = resource.stations.Where(s => !s.station.stationComponent.isStellar && s.product.item.localLogic == ELogisticStorage.Demand);
+                        var localSupply = resource.stations.Where(s => !s.station.stationComponent.isStellar && s.product.item.localLogic == ELogisticStorage.Supply);
+                        var localNone = resource.stations.Where(s => !s.station.stationComponent.isStellar && s.product.item.localLogic == ELogisticStorage.None);
 
                         List<PresOrderTuple> presOrder = new List<PresOrderTuple>()
                     {
