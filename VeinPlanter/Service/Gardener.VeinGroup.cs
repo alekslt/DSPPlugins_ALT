@@ -24,11 +24,12 @@ namespace VeinPlanter.Service
             {
                 float realRadius = localPlanet.realRadius;
 
-                int closestVeinGroupIndex = -1;
+                int closestVeinGroupIndex = -1, clostestVeinId = -1;
+                float clostestVeinGroupDistance = 100f;
                 Vector3 vector = Vector3.zero;
+                
                 if (Phys.RayCastSphere(ray.origin, ray.direction, 600f, Vector3.zero, realRadius + 1f, out var rch))
                 {
-                    float clostestVeinGroupDistance = 100f;
                     Dictionary<int, float> distMap = new Dictionary<int, float>();
 
                     // First pass check for vein Group. Uses veinGroups (cheaper)
@@ -47,26 +48,39 @@ namespace VeinPlanter.Service
                     }
 
                     // Second Pass. Looks up distance to specific vein nodes.
-                    var candidates = distMap.OrderBy(key => key.Value);
+                    var limitedCandidates = distMap.OrderBy(key => key.Value).Take(Math.Min(distMap.Count(), 5));
 
-                    foreach (var candkv in candidates)
-                    {
-                        // Debug.Log("VeinGroup Idx=" + candkv.Key + "\t Dist: " + candkv.Value);
-                    }
-
-                    var limitedCandidates = candidates.Take(Math.Min(candidates.Count(), 3));
-
+                    //var veinCandidates = from vg in limitedCandidates select from vp in localPlanet.factory.veinPool where vp;
+                    float currentClosest = clostestVeinGroupDistance;
                     foreach (var candkv in limitedCandidates)
                     {
                         Debug.Log("Cand: VeinGroup Idx=" + candkv.Key + "\t Dist: " + candkv.Value);
+
+                        for (int i = 1; i < localPlanet.factory.veinCursor; i++)
+                        {
+                            var vein = localPlanet.factory.veinPool[i];
+                            if (vein.id != i || vein.groupIndex != candkv.Key) { continue; }
+
+                            float veinDistance = Vector3.Distance(rch.point, vein.pos);
+                            if (veinDistance < currentClosest)
+                            {
+                                currentClosest = veinDistance;
+                                closestVeinGroupIndex = candkv.Key;
+                                clostestVeinId = vein.id;
+                            }
+                        }
                     }
+                    Debug.Log("Closest: VgIdx=" + closestVeinGroupIndex + " Vein Idx=" + clostestVeinId + "\t Dist: " + currentClosest);
+
+
 
                     // Cheat for now
-                    Assert.Equals(closestVeinGroupIndex, limitedCandidates.First().Key);
-                    closestVeinGroupIndex = candidates.First().Key;
+                    //Assert.Equals(closestVeinGroupIndex, limitedCandidates.First().Key);
+                    //closestVeinGroupIndex = candidates.First().Key;
                 }
                 if (closestVeinGroupIndex >= 0 && !Phys.RayCastSphere(ray.origin, ray.direction, 600f, vector, 3.5f, out rch))
                 {
+                    Debug.Log("Resetting to -1! ");
                     closestVeinGroupIndex = -1;
                 }
 

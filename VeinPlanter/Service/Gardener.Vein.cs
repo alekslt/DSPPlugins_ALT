@@ -50,6 +50,7 @@ namespace VeinPlanter.Service
                 localPlanet.factory.RefreshVeinMiningDisplay(newVeinIndex, 0, 0);
                 localPlanet.factory.planet.factoryModel.gpuiManager.SyncAllGPUBuffer();
 
+                Debug.Log("Adding new vein: " + vein.type.ToString() + " index: " + newVeinIndex + " Pos: " + vein.pos);
                 Gardener.VeinGroup.UpdatePosFromChildren(veinGroupIndex);
             }
         }

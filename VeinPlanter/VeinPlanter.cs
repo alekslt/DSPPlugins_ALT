@@ -50,9 +50,9 @@ namespace VeinPlanter
 		public bool ctrl;
 		public bool alt;
 
-        public enum eVeinModificationMode { Deactivated, Add, Modify, Remove};
+        public enum eVeinModificationMode { Deactivated, Add, Modify, Move, Remove};
 
-        eVeinModificationMode modMode = eVeinModificationMode.Modify;
+        eVeinModificationMode modMode = eVeinModificationMode.Add;
 
 
 
@@ -87,7 +87,7 @@ namespace VeinPlanter
 		{
             UpdateKeys();
             shouldEatInput = false;
-
+            /*
             if (shift && alt && Math.Abs(Input.mouseScrollDelta.y) > 0)
             {
                 int current = (int)modMode;
@@ -116,6 +116,7 @@ namespace VeinPlanter
                     // UIRealtimeTip.Popup("Vein Gardener Mode Changed to: " + modMode + " Input.mouseScrollDelta.y " + Input.mouseScrollDelta.y);
                 }
             }
+            */
 
             Vector3 worldPos;
             // RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTrans, Input.mousePosition, uicam, out var localPoint);
@@ -144,6 +145,7 @@ namespace VeinPlanter
                             {
                                 var veinGroup = Gardener.VeinGroup.New(EVeinType.Iron, worldPos.normalized);
                                 closestVeinGroupIndex = localPlanet.AddVeinGroupData(veinGroup);
+                                Debug.Log("Adding new veinGroup: " + veinGroup.type.ToString() + " index: " + closestVeinGroupIndex + " Pos: " + veinGroup.pos * localPlanet.radius);
                             }
                             Gardener.Vein.Add(localPlanet, worldPos, closestVeinGroupIndex);
                             break;
@@ -182,6 +184,16 @@ namespace VeinPlanter
             {
                 Input.ResetInputAxes();
             }
+
+            if (!(shift && alt))
+            {
+                winRect.x = Math.Max(Input.mousePosition.x-winRect.width/2, 0);
+                winRect.y = Math.Max((Screen.height-Input.mousePosition.y) - winRect.height/2,0);
+
+                winRect.x = Math.Min(Screen.width - winRect.width, winRect.x);
+                winRect.y = Math.Min(Screen.height - winRect.height, winRect.y);
+            }
+            
         }
         private static Rect winRect = new Rect(Screen.width-100, Screen.height/2-200, 105, 200);
 
@@ -195,7 +207,7 @@ namespace VeinPlanter
 
             if (shift && alt)
             {
-                winRect = GUILayout.Window(55416755, winRect, MiniMenu, "");
+                winRect = GUILayout.Window(55416758, winRect, MiniMenu, "");
                 UIHelper.EatInputInRect(winRect);
             }
             if (shouldEatInput)
