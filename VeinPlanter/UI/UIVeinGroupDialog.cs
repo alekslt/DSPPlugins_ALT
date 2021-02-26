@@ -1,147 +1,23 @@
 ﻿using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using VeinPlanter.Service;
 
 namespace VeinPlanter
 {
-	public class UIHelper
-	{
-		public static void EatInputInRect(Rect eatRect)
-		{
-			if (eatRect.Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y)))
-			{
-				// Ideally I want to only block mouse events from going through.
-				var isMouseInput = Input.GetMouseButton(0) || Input.GetMouseButtonDown(0) || Input.mouseScrollDelta.y != 0;
 
-				if (!isMouseInput)
-				{
-					// UnityEngine.Debug.Log("Canceling capture due to input not being mouse");
-					return;
-				}
-				else
-				{
-					Input.ResetInputAxes();
-				}
-
-			}
-		}
-	}
-	public class DropDownGUI
-	{
-		private Vector2 scrollViewVector = Vector2.zero;
-		public Rect dropDownRect = new Rect(125, 50, 125, 300);
-		public List<string> list = new List<string>() { "Drop_Down_Menu" };
-
-		int indexNumber;
-		bool show = false;
-
-		public void OnGUI()
-		{
-			if (GUI.Button(new Rect((dropDownRect.x - 100), dropDownRect.y, dropDownRect.width, 25), ""))
-			{
-				show = !show;
-			}
-
-			if (show)
-			{
-				scrollViewVector = GUI.BeginScrollView(new Rect((dropDownRect.x - 100), (dropDownRect.y + 25), dropDownRect.width, dropDownRect.height), scrollViewVector, new Rect(0, 0, dropDownRect.width, Mathf.Max(dropDownRect.height, (list.Count * 25))));
-
-				GUI.Box(new Rect(0, 0, dropDownRect.width, Mathf.Max(dropDownRect.height, (list.Count * 25))), "");
-
-				for (int index = 0; index < list.Count; index++)
-				{
-
-					if (GUI.Button(new Rect(0, (index * 25), dropDownRect.height, 25), ""))
-					{
-						show = false;
-						indexNumber = index;
-					}
-
-					GUI.Label(new Rect(5, (index * 25), dropDownRect.height, 25), list[index]);
-
-				}
-				GUI.EndScrollView();
-			}
-			else
-			{
-				GUI.Label(new Rect((dropDownRect.x - 95), dropDownRect.y, 300, 25), list[indexNumber]);
-			}
-
-		}
-	}
-	public class DropDownGUILayout<T>
-	{
-		private Vector2 scrollViewVector = Vector2.zero;
-		public Rect dropDownRect = new Rect(125, 50, 125, 300);
-		public List<T> list = new List<T>();
-
-		public int indexNumber = 0;
-		bool show = false;
-
-		public delegate bool DrawItemDelegate(T item);
-
-		public DrawItemDelegate DrawItem;
-
-		public bool OnGUI(float containerWidth, params GUILayoutOption[] options)
-		{
-			int oldIndexNumber = indexNumber;
-			GUILayout.BeginHorizontal(GUILayout.MinWidth(containerWidth));
-			if (show)
-			{
-				scrollViewVector = GUILayout.BeginScrollView(scrollViewVector, UnityEngine.GUI.skin.box);
-
-				//scrollViewVector = GUI.BeginScrollView(new Rect((dropDownRect.x - 100), (dropDownRect.y + 25), dropDownRect.width, dropDownRect.height), scrollViewVector, new Rect(0, 0, dropDownRect.width, Mathf.Max(dropDownRect.height, (list.Length * 25))));
-
-				//GUILayout.Box(new Rect(0, 0, dropDownRect.width, Mathf.Max(dropDownRect.height, (list.Length * 25))), "");
-				GUILayout.BeginVertical();
-				for (int index = 0; index < list.Count; index++)
-				{
-					GUILayout.BeginHorizontal(GUI.skin.button, options);
-					if (DrawItem(list[index]))
-					{
-						show = false;
-						indexNumber = index;
-					}
-					GUILayout.EndHorizontal();
-
-				}
-				GUILayout.EndVertical();
-				GUILayout.EndScrollView();
-			}
-			else
-			{
-				GUILayout.BeginHorizontal(GUI.skin.button, options);
-				if (DrawItem(list[indexNumber]))
-				{
-					show = !show;
-				}
-				GUILayout.EndHorizontal();
-			}
-			GUILayout.EndHorizontal();
-
-			return oldIndexNumber != indexNumber;
-		}
-	}
-
-	public class ListItem
-    {
-		public Texture2D tex;
-		public string name;
-    }
-
-	public class UIVeinGroupDialog
+    public class UIVeinGroupDialog
     {
         private static Rect winRect = new Rect(0, 0, 450, 200);
 		public Boolean Show { get; set; } = false;
 
 		// private static GUISkin customSkin = null;
 
-		public DropDownGUILayout<ListItem> dropdown = new DropDownGUILayout<ListItem>();
+		public DropDownGUILayout<UIVeinGroupDialogListItem> dropdown = new DropDownGUILayout<UIVeinGroupDialogListItem>();
 
 		public PlanetData localPlanet { get; set; }
 
@@ -153,7 +29,7 @@ namespace VeinPlanter
 
 		private static Texture2D DialogueBackgroundTexture;
 
-		public bool DrawItem(ListItem t)
+		public bool DrawItem(UIVeinGroupDialogListItem t)
         {
 			bool hit = GUILayout.Button(t.tex, GUI.skin.box, VeinIconLayoutOptions);
 			hit |= GUILayout.Button(t.name, buttonStyle, GUILayout.MinWidth(140), GUILayout.MaxWidth(140), GUILayout.MinHeight(40));
@@ -174,7 +50,7 @@ namespace VeinPlanter
 				ItemProto itemProto = veinProduct != 0 ? LDB.items.Select(veinProduct) : null;
 				if (itemProto != null)
 				{
-					dropdown.list.Add(new ListItem() { tex= itemProto.iconSprite.texture, name= itemProto.name.Translate() });
+					dropdown.list.Add(new UIVeinGroupDialogListItem() { tex= itemProto.iconSprite.texture, name= itemProto.name.Translate() });
 				}
 			}
 
@@ -326,7 +202,7 @@ namespace VeinPlanter
 			dropdown.indexNumber = (int)veinGroup.type - 1;
 			if (dropdown.OnGUI(225, GUILayout.MinHeight(42), GUILayout.MinWidth(150), GUILayout.MaxWidth(150)))
 			{
-				ChangeVeinGroupType(veinGroupIndex, (EVeinType)dropdown.indexNumber + 1);
+				Gardener.VeinGroup.ChangeType(veinGroupIndex, (EVeinType)dropdown.indexNumber + 1, localPlanet);
 			}
 			/*
 			GUILayout.Box(texture, VeinIconLayoutOptions);
@@ -340,51 +216,6 @@ namespace VeinPlanter
 			GUILayout.EndHorizontal();
 		}
 		public System.Random random = new System.Random(0);
-		public void ChangeVeinGroupType(int veinGroupIndex, EVeinType newType)
-        {
-			ref PlanetData.VeinGroup veinGroup = ref localPlanet.veinGroups[veinGroupIndex];
-			veinGroup.type = newType;
 
-			int veinTypeIndex = (int)newType;
-
-			for (int i = 1; i < localPlanet.factory.veinCursor; i++)
-            {
-				ref VeinData vein = ref localPlanet.factory.veinPool[i];
-				ref AnimData veinAnim = ref localPlanet.factory.veinAnimPool[i];
-
-				// Skip invalid veins and veins from other groups.
-				if (i != vein.id
-					|| vein.groupIndex != veinGroupIndex)
-                {
-					continue;
-                }
-
-				// Remove the old vein model instance from the GPU Instancing
-				localPlanet.factoryModel.gpuiManager.RemoveModel(vein.modelIndex, vein.modelId, setBuffer: false);
-
-				vein.productId = PlanetModelingManager.veinProducts[veinTypeIndex];
-				vein.type = newType;				
-				vein.modelIndex = (short)random.Next(PlanetModelingManager.veinModelIndexs[veinTypeIndex],
-					PlanetModelingManager.veinModelIndexs[veinTypeIndex] + PlanetModelingManager.veinModelCounts[veinTypeIndex]);
-				vein.modelId = localPlanet.factoryModel.gpuiManager.AddModel(
-					vein.modelIndex, i, vein.pos, Maths.SphericalRotation(vein.pos,
-					UnityEngine.Random.value * 360f), setBuffer: false);
-
-				veinAnim.time = ((vein.amount < 20000) ? (1f - (float)vein.amount * 5E-05f) : 0f);
-				veinAnim.prepare_length = 0f;
-				veinAnim.working_length = 1f;
-				veinAnim.state = (uint)vein.type;
-				veinAnim.power = 0f;
-
-				GameMain.localPlanet.factory.RefreshVeinMiningDisplay(i, 0, 0);
-			}
-			GameMain.localPlanet.factoryModel.gpuiManager.SyncAllGPUBuffer();
-			/*
-			var veinPositions = (from vein in GameMain.localPlanet.factory.veinPool
-								 where vein.groupIndex == veinGroupIndex
-
-								 select vein.pos).ToList();
-			*/
-		}
     }
 }

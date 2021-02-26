@@ -79,10 +79,16 @@
     <EmbeddedResource Include="..\..\..\..\..\..\Users\aleks\Documents\TestUnityProject\Assets\AssetBundles\veinplanter">
       <Link>Resources\veinplanter</Link>
     </EmbeddedResource>
-    <None Include="VeinGen.cs" />
-    <Compile Include="DropDown.cs" />
-    <Compile Include="DSPExtensions.cs" />
-    <Compile Include="UIVeinGroupDialog.cs" />
+    <None Include="Service\VeinGen.cs" />
+    <Compile Include="Service\Gardener.cs" />
+    <Compile Include="Service\Gardener.Vein.cs" />
+    <Compile Include="Service\Gardener.VeinGroup.cs" />
+    <Compile Include="UI\GenericComponents\DropDownGUI.cs" />
+    <Compile Include="UI\GenericComponents\DropDownGUILayout.cs" />
+    <Compile Include="Service\DSPExtensions.cs" />
+    <Compile Include="UI\UIVeinGroupDialogListItem.cs" />
+    <Compile Include="UI\Helper\UIHelper.cs" />
+    <Compile Include="UI\UIVeinGroupDialog.cs" />
     <Compile Include="VeinPlanter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Version.cs" />
