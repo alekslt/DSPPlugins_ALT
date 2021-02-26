@@ -1,4 +1,22 @@
 ﻿
+## MineralExhaustionNotified v0.5.1
+
+* User customizable button placement
+* Scaling code to give a consistent UI size independent of resolusion. (Thanks to yushiro for PR)
+* Disabled initial pop-up, if alarm situation, for now as I personally didn't find this feature useful. Will bring it back after user customizable triggers are implemented.
+
+### Commit log from 'v0.5.0' to 'v0.5.1' (most recent changes are listed on top):
+
+Commit log from 'MineralExhaustionNotifier-v0.5' to 'HEAD' (most recent changes are listed on top):
+2dd18eb	Updating version, readme, manifest to prepare for minernotificationui release 0.5.1.
+a34580f	Popups are a bad idea. Work on user settable alarm triggers in the future instead.
+c12efbc	Config configurable placement of menu button. Fixes #2.
+8b92039	Use ScaledScreenWidth to place menu button. Also shrunk menu button, and replaced its background texture.
+4c155d1	Modified autoscale code for #1 to support various aspect ratios other than 1920x1080. (Mine is 5120x1440).
+ba6b165	Merge pull request #3 from yushiro/masterFixes issue #1. Auto Scale MineralExhaustionNotifier UI based based on design size of 1080.
+91ba46d	bugfix #1base on 1920x1080 GUI and this will auto scale GUI at game resolution 3840x2160
+
+
 ## MineralExhaustionNotified v0.5
 
 * Added information on logistic stations and their items as well

@@ -145,6 +145,7 @@ namespace DSPPlugins_ALT.GUI
             textAlignStyle.alignment = TextAnchor.MiddleLeft;
 
             menuButton = new GUIStyle(UnityEngine.GUI.skin.button);
+            menuButton.padding.left = 10;
             menuButton.normal.background = menuButton.hover.background = menuButton.active.background = menu_button_texture;
             
             menuButton.normal.textColor = Color.white;

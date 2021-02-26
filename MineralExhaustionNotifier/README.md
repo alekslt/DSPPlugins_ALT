@@ -21,10 +21,7 @@ You can also filter what is shown by several filters to drill down to what you w
 
 The plugin will periodically check the miners for an alarm (Low Power, Low Production Yield), and/or if the remaining mineral they can mine is low or none.
 
-If a miner is detected with this condition a first time notification window will pop up, but afterwards only available through the toggle button (M) on lower right,
-or by pressing the hot key.
-
-If you have cleared out all faulty miners by default this will allow a popup notification to occur again.
+If a miner is detected with this condition the toggle button (M) on lower right will change colour to red. To open the window press this button, or the bound quick key.
 
 #### Quick Key map (configurable) : 
 
@@ -37,6 +34,12 @@ If you have cleared out all faulty miners by default this will allow a popup not
 ![Full screen example image](https://raw.githubusercontent.com/alekslt/DSPPlugins_ALT/master/MineralExhaustionNotifier/Screenshots/FullGame.PNG)
 
 ## Changes in last release
+
+### MineralExhaustionNotified v0.5.1
+
+* User customizable button placement
+* Scaling code to give a consistent UI size independent of resolusion. (Thanks to yushiro for PR)
+* Disabled initial pop-up, if alarm situation, for now as I personally didn't find this feature useful. Will bring it back after user customizable triggers are implemented.
 
 ### MineralExhaustionNotified v0.5
 
@@ -61,4 +64,4 @@ If you have cleared out all faulty miners by default this will allow a popup not
 * xiaoye97 for their LDBTool source that allowed me to understand enough GUI in the game to make my own
 * ragzilla for DSP_MinerOverride giving me a nice place to look for mining-related classes
 * Forked for poking me to create the Mineral Exhaustion notification plugin.
-
+* yushiro for auto scaling code to better support high resolution displays.
