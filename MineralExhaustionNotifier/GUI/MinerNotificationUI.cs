@@ -33,6 +33,8 @@ namespace DSPPlugins_ALT.GUI
         public static bool Show;
         private static Rect winRect = new Rect(0, 0, 1015, 650); // 680
 
+        public static int UILayoutHeight { get; set; } = 1080;
+
         private static Vector2 sv;
         private static GUIStyle textAlignStyle;
 
@@ -90,12 +92,24 @@ namespace DSPPlugins_ALT.GUI
         public static int ScaledScreenWidth { get; set; } = 1920;
         public static int ScaledScreenHeight { get; set; } = 1080;
 
-        public static void AutoResize(int designScreenHeight)
+        public static float ScaleRatio { get; set; } = 1.0f;
+
+        const float FixedSizeAdjustOriginal = 0.9f;
+        public static float FixedSizeAdjust { get; set; } = FixedSizeAdjustOriginal;
+
+        public static void AutoResize(int designScreenHeight, bool applyCustomScale = true)
         {
-            float ratio = (float)Screen.height / designScreenHeight;
+            if (applyCustomScale)
+            {
+                designScreenHeight = (int)Math.Round((float)designScreenHeight / FixedSizeAdjust);
+            }
+            
+            ScaledScreenHeight = designScreenHeight;
+            ScaleRatio = (float)Screen.height / designScreenHeight;
+            
             // Vector2 resizeRatio = new Vector2((float)Screen.width / screenWidth, (float)Screen.height / screenHeight);
-            ScaledScreenWidth = (int)Math.Round(Screen.width / ratio);
-            UnityEngine.GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(ratio, ratio, 1.0f));
+            ScaledScreenWidth = (int)Math.Round(Screen.width / ScaleRatio);
+            UnityEngine.GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(ScaleRatio, ScaleRatio, 1.0f));
         }
 
         private void Init()
@@ -149,7 +163,7 @@ namespace DSPPlugins_ALT.GUI
             menuButton.normal.background = menuButton.hover.background = menuButton.active.background = menu_button_texture;
             
             menuButton.normal.textColor = Color.white;
-            menuButton.fontSize = 16;
+            menuButton.fontSize = 14;
 
             menuButtonHighlighted = new GUIStyle(menuButton);
             menuButtonHighlighted.normal.textColor = Color.red;
@@ -186,7 +200,6 @@ namespace DSPPlugins_ALT.GUI
 
         public void OnGUI()
         {
-            AutoResize(1080);
             var uiGame = BGMController.instance.uiGame;
             var shouldShowByGameState = DSPGame.GameDesc != null && uiGame != null && uiGame.gameData != null && uiGame.guideComplete && DSPGame.IsMenuDemo == false && DSPGame.Game.running && (UIGame.viewMode == EViewMode.Normal || UIGame.viewMode == EViewMode.Sail) &&
                 !(uiGame.techTree.active || uiGame.dysonmap.active || uiGame.starmap.active || uiGame.escMenu.active || uiGame.hideAllUI0 || uiGame.hideAllUI1) && uiGame.gameMenu.active;
@@ -200,15 +213,17 @@ namespace DSPPlugins_ALT.GUI
 
             if (!isInit && GameMain.isRunning) { Init(); InitSources(); }
 
+            AutoResize(DSPGame.globalOption.uiLayoutHeight, applyCustomScale: false);
+            if (ShowButton && shouldShowByGameState)
+            {
+                DrawMenuButton();
+            }
+
+            AutoResize(UILayoutHeight);
             if (Show && shouldShowByGameState)
             {
                 winRect = GUILayout.Window(55416753, winRect, WindowFunc, WindowName);
                 UIHelper.EatInputInRect(winRect);
-            }
-
-            if (ShowButton && shouldShowByGameState)
-            {
-                DrawMenuButton();
             }
         }
 
@@ -218,7 +233,8 @@ namespace DSPPlugins_ALT.GUI
 
         private void DrawMenuButton()
         {
-            Rect buttonWinRect = new Rect(ScaledScreenWidth - MenuButtonXOffset, ScaledScreenHeight - MenuButtonYOffset, 42, 42);
+            // This guy is needs to be locked to the DSPGame.globalOption.uiLayoutHeight ratio.
+            Rect buttonWinRect = new Rect(ScaledScreenWidth - (MenuButtonXOffset), DSPGame.globalOption.uiLayoutHeight - (MenuButtonYOffset), 42, 42);
             var activeStyle = HighlightButton ? menuButtonHighlighted : menuButton;
             GUILayout.BeginArea(buttonWinRect);
             if (GUILayout.Button("M", activeStyle, MenuButtonLayoutOptions))
@@ -923,6 +939,27 @@ namespace DSPPlugins_ALT.GUI
             if (GUILayout.Button("X"))
             {
                 Show = false;
+            }
+            GUILayout.EndArea();
+
+            GUILayout.BeginArea(new Rect(winRect.width - 45f, 2f, 20f, 17f));
+            if (GUILayout.Button("+"))
+            {
+                FixedSizeAdjust = Mathf.Min(FixedSizeAdjustOriginal + 0.8f, FixedSizeAdjust + 0.1f);
+            }
+            GUILayout.EndArea();
+
+            GUILayout.BeginArea(new Rect(winRect.width - 64f, 2f, 20f, 17f));
+            if (GUILayout.Button("1"))
+            {
+                FixedSizeAdjust = FixedSizeAdjustOriginal;
+            }
+            GUILayout.EndArea();
+
+            GUILayout.BeginArea(new Rect(winRect.width - 83f, 2f, 20f, 17f));
+            if (GUILayout.Button("-"))
+            {
+                FixedSizeAdjust = Mathf.Max(FixedSizeAdjustOriginal - 0.5f, FixedSizeAdjust - 0.1f);
             }
             GUILayout.EndArea();
 

@@ -49,7 +49,7 @@ namespace DSPPlugins_ALT.Statistics
                 if (deltaNotification > notificationWindowHigh &&
                     deltaTriggerNotification > notificationWindowHigh)
                 {
-                    triggerNotification = true;
+                    triggerNotification = true && MineralExhaustionNotifier.ShowPopups.Value;
                 }
 
                 if (deltaUpdated > notificationPruneTime)
@@ -95,7 +95,6 @@ namespace DSPPlugins_ALT.Statistics
             if (time - lastTime < (MineralExhaustionNotifier.timeStepsSecond * MineralExhaustionNotifier.CheckPeriodSeconds.Value)) { return; }
             lastTime = time;
 
-            //notificationList.Clear();
             minerStats.Clear();
             logisticsStationStats.Clear();
 
@@ -113,14 +112,6 @@ namespace DSPPlugins_ALT.Statistics
                     }
                 }
             }
-            /*
-            for (int i = 1; i < gameData.galacticTransport.stationCursor; i++)
-            {
-                if (gameData.galacticTransport.stationPool[i] != null && gameData.galacticTransport.stationPool[i].gid == i)
-                {
-                    stationStatUpdate(gameData.galacticTransport.stationPool[i], gameData.galaxy.PlanetById(gameData.galacticTransport.stationPool[i].planetId));
-                }
-            }*/
 
             updateNotificationTimes(time);
             if (onStatSourcesUpdated != null)
@@ -217,72 +208,60 @@ namespace DSPPlugins_ALT.Statistics
 
             // Debug.Log(factory.planet.displayName + " - " + __instance.entityId + ", " + veinName + ", " + __instance.workstate + ", VeinCount: " + __instance.veinCount + " VeinAmount: " + veinAmount + " | " + latlon);
 
-            //if (veinAmount < MineralExhaustionNotifier.VeinAmountThreshold.Value || signType != SignData.NONE)
-            {
-                /*
-                if (!notificationList.ContainsKey(factory.planet.displayName))
-                {
-                    notificationList.Add(factory.planet.displayName, new List<MinerNotificationDetail>());
-                }
-                */
-
-                Texture2D texture = null;
+            Texture2D texture = null;
                 
-                if (itemProto != null)
-                {
-                    texture = itemProto.iconSprite.texture;
-                    veinName = itemProto.name.Translate();
-                }
-
-                float minutesToEmptyVein;
-                string minutesToEmptyVeinTxt;
-                var miningRatePerMin = 0f;
-                if (time == 0 || veinAmount == 0 || minerComponent.period == 0)
-                {
-                    minutesToEmptyVeinTxt = (veinAmount == 0) ? "Empty" : "Infinity";
-                    minutesToEmptyVein = (veinAmount == 0) ? 0 : float.PositiveInfinity;
-                }
-                else
-                {
-                    var miningTimePerSec = minerComponent.period / (MineralExhaustionNotifier.timeStepsSecond);
-                    var secondsPerMiningOperation = (float)miningTimePerSec / (float)time;
-                    miningRatePerMin = 60 / secondsPerMiningOperation;
-                    minutesToEmptyVein = (float)Math.Round((float)veinAmount / miningRatePerMin, 0);
-                    minutesToEmptyVeinTxt = minutesToEmptyVein.ToString();
-                    if (minerComponent.workstate == EWorkState.Full)
-                    {
-                        minutesToEmptyVeinTxt += " to ∞";
-                    }
-                    minutesToEmptyVeinTxt += " min"; // .ToString("0.0") + "每分钟".Translate();
-                }
-                var minerStat = new MinerNotificationDetail()
-                {
-                    minerComponent = minerComponent,
-                    entityId = minerComponent.entityId,
-                    planetName = factory.planet.displayName,
-                    itemProto = itemProto,
-                    signType = signData.signType,
-                    veinName = veinName,
-                    veinAmount = veinAmount,
-                    plantPosition = plantPosition,
-                    factory = factory,
-                    miningRate = miningRate,
-                    time = time,
-                    period = minerComponent.period,
-                    veinCount = minerComponent.veinCount,
-                    miningRatePerMin = miningRatePerMin,
-                    minutesToEmptyVein = minutesToEmptyVein,
-                    minutesToEmptyVeinTxt = minutesToEmptyVeinTxt,
-                    resourceTexture = texture,
-                    powerNetwork = powerNetwork,
-                    consumerRatio = consumerRatio
-                };
-                minerStats.Add(minerStat);
-                //notificationList[factory.planet.displayName].Add(minerStat); ;
-
-                return true;
+            if (itemProto != null)
+            {
+                texture = itemProto.iconSprite.texture;
+                veinName = itemProto.name.Translate();
             }
-            return false;
+
+            float minutesToEmptyVein;
+            string minutesToEmptyVeinTxt;
+            var miningRatePerMin = 0f;
+            if (time == 0 || veinAmount == 0 || minerComponent.period == 0)
+            {
+                minutesToEmptyVeinTxt = (veinAmount == 0) ? "Empty" : "Infinity";
+                minutesToEmptyVein = (veinAmount == 0) ? 0 : float.PositiveInfinity;
+            }
+            else
+            {
+                var miningTimePerSec = minerComponent.period / (MineralExhaustionNotifier.timeStepsSecond);
+                var secondsPerMiningOperation = (float)miningTimePerSec / (float)time;
+                miningRatePerMin = 60 / secondsPerMiningOperation;
+                minutesToEmptyVein = (float)Math.Round((float)veinAmount / miningRatePerMin, 0);
+                minutesToEmptyVeinTxt = minutesToEmptyVein.ToString();
+                if (minerComponent.workstate == EWorkState.Full)
+                {
+                    minutesToEmptyVeinTxt += " to ∞";
+                }
+                minutesToEmptyVeinTxt += " min"; // .ToString("0.0") + "每分钟".Translate();
+            }
+            var minerStat = new MinerNotificationDetail()
+            {
+                minerComponent = minerComponent,
+                entityId = minerComponent.entityId,
+                planetName = factory.planet.displayName,
+                itemProto = itemProto,
+                signType = signData.signType,
+                veinName = veinName,
+                veinAmount = veinAmount,
+                plantPosition = plantPosition,
+                factory = factory,
+                miningRate = miningRate,
+                time = time,
+                period = minerComponent.period,
+                veinCount = minerComponent.veinCount,
+                miningRatePerMin = miningRatePerMin,
+                minutesToEmptyVein = minutesToEmptyVein,
+                minutesToEmptyVeinTxt = minutesToEmptyVeinTxt,
+                resourceTexture = texture,
+                powerNetwork = powerNetwork,
+                consumerRatio = consumerRatio
+            };
+            minerStats.Add(minerStat);
+
+            return true;
         }
     }
 }
