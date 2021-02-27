@@ -1,5 +1,19 @@
 ﻿
-## MineralExhaustionNotified v0.5.1
+## MineralExhaustionNotifier v0.5.2
+
+* As some had grown used to the smaller window size with high resolution/pixel densities the scaling code is reworked to base itself on the games UI Layout Reference Height adjustment.
+* If you are not happy with the size that the UI Layout Reference Height adjustment gives you there are config options that allow you to override the size. (Larger value = smaller window)
+* In game window scale adjustment through - 1 + buttons on the window title bar.
+* Fixed sorting for Logistic Stations - Resource. Now sorts on Resource Name, not the internal id. :)
+
+### Commit log from 'v0.5.1' to 'v0.5.2' (most recent changes are listed on top):
+
+7381027 Prepare for release MineralExhaustionNotified v0.5.2. Updated version, readme, changelog, screenshots and thunderstore icon/logo.
+7c20594 Added two config variables for adjusting the UI Layout Reference Height behaviour for the UI. Default is following the games reference height, but can also override. Also added runtime adjustable scale for the window.
+66f175b MinerNotificationUI - Order by item name, not item id for logistic stations - resource view.
+
+
+## MineralExhaustionNotifier v0.5.1
 
 * User customizable button placement
 * Scaling code to give a consistent UI size independent of resolusion. (Thanks to yushiro for PR)
@@ -17,7 +31,7 @@ ba6b165	Merge pull request #3 from yushiro/masterFixes issue #1. Auto Scale Mine
 91ba46d	bugfix #1base on 1920x1080 GUI and this will auto scale GUI at game resolution 3840x2160
 
 
-## MineralExhaustionNotified v0.5
+## MineralExhaustionNotifier v0.5
 
 * Added information on logistic stations and their items as well
 * Filtering options. Filters are logically AND between the filters, and OR for the filter-local. Meaning you can do queries like: Stellar Stations AND Item % below 50%, AND Supply Remote.

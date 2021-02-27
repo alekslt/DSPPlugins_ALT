@@ -35,13 +35,20 @@ If a miner is detected with this condition the toggle button (M) on lower right 
 
 ## Changes in last release
 
-### MineralExhaustionNotified v0.5.1
+### MineralExhaustionNotifier v0.5.2
+
+* As some had grown used to the smaller window size with high resolution/pixel densities the scaling code is reworked to base itself on the games UI Layout Reference Height adjustment.
+* If you are not happy with the size that the UI Layout Reference Height adjustment gives you there are config options that allow you to override the size. (Larger value = smaller window)
+* In game window scale adjustment through - 1 + buttons on the window title bar.
+* Fixed sorting for Logistic Stations - Resource. Now sorts on Resource Name, not the internal id. :)
+
+### MineralExhaustionNotifier v0.5.1
 
 * User customizable button placement
 * Scaling code to give a consistent UI size independent of resolusion. (Thanks to yushiro for PR)
 * Disabled initial pop-up, if alarm situation, for now as I personally didn't find this feature useful. Will bring it back after user customizable triggers are implemented.
 
-### MineralExhaustionNotified v0.5
+### MineralExhaustionNotifier v0.5
 
 * Added information on logistic stations and their items as well
 * Filtering options. Filters are logically AND between the filters, and OR for the filter-local. Meaning you can do queries like: Stellar Stations AND Item % below 50%, AND Supply Remote.
