@@ -36,6 +36,9 @@ namespace VeinPlanter.Service
 
                 vein.amount = Mathf.RoundToInt(vein.amount * DSPGame.GameDesc.resourceMultiplier);
 
+                veinGroup.count++;
+                veinGroup.amount += vein.amount;
+
                 localPlanet.veinAmounts[veinTypeIndex] += vein.amount;
                 int newVeinIndex = localPlanet.factory.AddVeinData(vein);
                 localPlanet.factory.veinPool[newVeinIndex].modelId = localPlanet.factoryModel.gpuiManager.AddModel(vein.modelIndex, newVeinIndex, vein.pos, Maths.SphericalRotation(vein.pos, UnityEngine.Random.value * 360f), setBuffer: false);
@@ -53,9 +56,30 @@ namespace VeinPlanter.Service
                 Debug.Log("Adding new vein: " + vein.type.ToString() + " index: " + newVeinIndex + " Pos: " + vein.pos);
                 Gardener.VeinGroup.UpdatePosFromChildren(veinGroupIndex);
             }
+
+            public static void Remove(PlanetData localPlanet, int veinIndexIndex, int veinGroupIndex)
+            {
+                //var planetFactory = GameMain.data.factories[0];
+                Debug.Assert(veinGroupIndex >= 0);
+                Debug.Assert(veinIndexIndex >= 0);
+
+                ref PlanetData.VeinGroup veinGroup = ref localPlanet.veinGroups[veinGroupIndex];
+                ref VeinData vein = ref localPlanet.factory.veinPool[veinIndexIndex];
+
+                Debug.Assert(vein.id != 0);
+                Debug.Assert(vein.groupIndex == veinGroupIndex);
+
+                veinGroup.count--;
+                veinGroup.amount -= vein.amount;
+                localPlanet.factory.RemoveVeinWithComponents(veinIndexIndex);
+
+                if (veinGroup.count <= 0)
+                {
+                    Debug.Log("Group: " + veinGroupIndex + " has count " + veinGroup.count + ". Removing (set to 0)");
+                    veinGroup.type = EVeinType.None;
+                    veinGroup.amount = veinGroup.count = 0;
+                }
+            }
         }
-        
-
-
     }
 }

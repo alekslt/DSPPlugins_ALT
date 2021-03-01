@@ -8,11 +8,13 @@ namespace VeinPlanter
 {
     public static class DSPExtensions
     {
+        /*
         class PlanetDataExt
         {
             public int extraField;
         }
         static Dictionary<PlanetData, PlanetDataExt> ExtFields = new Dictionary<PlanetData, PlanetDataExt>();
+        */
 
         public static int AddVeinGroupData(this PlanetData planet, PlanetData.VeinGroup vein)
         {

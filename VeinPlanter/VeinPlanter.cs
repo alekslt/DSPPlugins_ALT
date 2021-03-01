@@ -52,7 +52,7 @@ namespace VeinPlanter
 
         public enum eVeinModificationMode { Deactivated, Add, Modify, Move, Remove};
 
-        eVeinModificationMode modMode = eVeinModificationMode.Add;
+        eVeinModificationMode modMode = eVeinModificationMode.Deactivated;
 
 
 
@@ -136,7 +136,7 @@ namespace VeinPlanter
                     worldPos = hitInfo.point;
                     Debug.Log("Clicked on world pos: " + worldPos.ToString());
 
-                    int closestVeinGroupIndex = Gardener.VeinGroup.GetClosestIndex(ray, localPlanet);
+                    Gardener.VeinGroup.GetClosestIndex(ray, localPlanet, out int closestVeinGroupIndex, out int closestVeinIndex, out float closestVeinDistance, out float closestVeinDistance2D);
 
                     switch (modMode)
                     {
@@ -168,7 +168,14 @@ namespace VeinPlanter
                                 dialog = null;
                             }
                             break;
-                        case eVeinModificationMode.Remove: break;
+                        case eVeinModificationMode.Remove:
+                            if (closestVeinGroupIndex >= 0 && closestVeinIndex >= 0 && closestVeinDistance2D < 1)
+                            {
+                                Debug.Log("Removing vein: " + closestVeinIndex + " in group: " + closestVeinGroupIndex);
+                                Gardener.Vein.Remove(localPlanet, closestVeinIndex, closestVeinGroupIndex);
+                                Gardener.VeinGroup.UpdatePosFromChildren(closestVeinGroupIndex);
+                            }
+                            break;
 
                         case eVeinModificationMode.Deactivated:
                         default:
