@@ -77,10 +77,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DSPHelpers\DSPHelper.cs" />
+    <Compile Include="GUI\DSPStatSource.cs" />
+    <Compile Include="GUI\DSPStatSourceLogisticStations.cs" />
+    <Compile Include="GUI\DSPStatSourceVeinMiners.cs" />
     <Compile Include="GUI\Filters\Filter.cs" />
     <Compile Include="GUI\Helpers\FilterHelper.cs" />
     <Compile Include="GUI\Filters\PresOrderTuple.cs" />
     <Compile Include="GUI\Filters\ResStationGroup.cs" />
+    <Compile Include="GUI\TabFilterInfo.cs" />
+    <Compile Include="GUI\UITheme.cs" />
     <Compile Include="Statistics\Helpers\DSPStatisticsHelpers.cs" />
     <Compile Include="MineralExhaustionNotifier.cs" />
     <Compile Include="Statistics\DSPStatistics.cs" />

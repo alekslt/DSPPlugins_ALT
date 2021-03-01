@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DSPPlugins_ALT.GUI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,6 +28,28 @@ namespace DSPPlugins_ALT
                     Input.ResetInputAxes();
                 }
 
+            }
+        }
+
+        public static string GetSourceTabName(eTAB_SOURCE_TYPE tabType)
+        {
+            switch (tabType)
+            {
+                case eTAB_SOURCE_TYPE.VeinMeiners: return "Vein Miners";
+                case eTAB_SOURCE_TYPE.LogisticStations: return "Logistic Stations";
+                default: return "Undefined";
+            }
+        }
+
+        public static string GetTabName(eTAB_TYPES tabType)
+        {
+            switch (tabType)
+            {
+                case eTAB_TYPES.TAB_PLANET: return "Planet";
+                case eTAB_TYPES.TAB_NETWORK: return "Power Network";
+                case eTAB_TYPES.TAB_RESOURCE: return "Resource";
+                case eTAB_TYPES.TAB_LOGISTICS: return "Logistics";
+                default: return "Undefined";
             }
         }
     }
