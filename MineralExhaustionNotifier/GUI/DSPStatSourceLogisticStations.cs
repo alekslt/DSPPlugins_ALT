@@ -22,6 +22,10 @@ namespace DSPPlugins_ALT.GUI
             TABPages = new List<eTAB_TYPES>() { eTAB_TYPES.TAB_PLANET, eTAB_TYPES.TAB_RESOURCE };
             InitFilters();
             UpdateSource();
+
+            DefaultCollapsedStateLevel[1] = false;
+            DefaultCollapsedStateLevel[2] = false;
+            DefaultCollapsedStateLevel[3] = true;
         }
 
         public override void UpdateSource()

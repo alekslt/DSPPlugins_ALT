@@ -23,6 +23,10 @@ namespace DSPPlugins_ALT.GUI
 
             InitFilters();
             UpdateSource();
+
+            DefaultCollapsedStateLevel[1] = false;
+            DefaultCollapsedStateLevel[2] = true;
+            DefaultCollapsedStateLevel[3] = false;
         }
         public override void UpdateSource()
         {

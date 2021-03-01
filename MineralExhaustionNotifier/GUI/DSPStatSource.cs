@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace DSPPlugins_ALT.GUI
@@ -17,16 +18,30 @@ namespace DSPPlugins_ALT.GUI
         public abstract void DrawTabGUI(eTAB_TYPES selectedTab);
 
         public bool ShouldAutoUpdate { get; set; } = false;
-        public bool DefaultIsChildrenCollapsedState { get; set; } = true;
 
+        /*
+        public bool DefaultIsChildrenCollapsedStateLevel1 { get; set; } = false;
+        public bool DefaultIsChildrenCollapsedStateLevel2 { get; set; } = false;
+        public bool DefaultIsChildrenCollapsedStateLevel3 { get; set; } = true;
+        */
+
+        public Dictionary<int, bool> DefaultCollapsedStateLevel = new Dictionary<int, bool>();
 
         public bool IsItemChildrenCollapsed(string id)
         {
+            // LogisticStations.TAB_PLANET.planetId.iron;
             if (CollapsedState.ContainsKey(id))
             {
                 return CollapsedState[id];
             }
-            return DefaultIsChildrenCollapsedState;
+            var displayLevel = id.Count(f => f == '.') - 1;
+
+            if (displayLevel >= 1 && displayLevel <= 3)
+            {
+                return DefaultCollapsedStateLevel[displayLevel];
+            }
+                        
+            return false;  
         }
 
         public void DrawCollapsedChildrenChevron(string myId, out bool childrenCollapsed)

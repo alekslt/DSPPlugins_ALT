@@ -211,13 +211,18 @@ namespace DSPPlugins_ALT.GUI
             bool shouldUpdate = false;
             var oldAutoUpdateState = DSPStatSources[selectedTabSourceType].ShouldAutoUpdate;
             DSPStatSources[selectedTabSourceType].ShouldAutoUpdate = GUILayout.Toggle(DSPStatSources[selectedTabSourceType].ShouldAutoUpdate, $"AutoRefresh");
-
-            var oldCollapsedState = DSPStatSources[selectedTabSourceType].DefaultIsChildrenCollapsedState;
-            DSPStatSources[selectedTabSourceType].DefaultIsChildrenCollapsedState = GUILayout.Toggle(DSPStatSources[selectedTabSourceType].DefaultIsChildrenCollapsedState, $"AutoCollapsed");
-            if (oldCollapsedState != DSPStatSources[selectedTabSourceType].DefaultIsChildrenCollapsedState)
             if (oldAutoUpdateState != DSPStatSources[selectedTabSourceType].ShouldAutoUpdate)
             {
                 shouldUpdate = true;
+            }
+            for (int i = 1; i <= 3; i++)
+            {
+                var oldCollapsedLevelState = DSPStatSources[selectedTabSourceType].DefaultCollapsedStateLevel[i];
+                DSPStatSources[selectedTabSourceType].DefaultCollapsedStateLevel[i] = GUILayout.Toggle(DSPStatSources[selectedTabSourceType].DefaultCollapsedStateLevel[i], $"AutoCollapsed L"+i);
+                if (oldCollapsedLevelState != DSPStatSources[selectedTabSourceType].DefaultCollapsedStateLevel[i])
+                {
+                    shouldUpdate = true;
+                }
             }
             if (shouldUpdate)
             {
