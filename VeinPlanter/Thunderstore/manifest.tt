@@ -1,0 +1,3 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ output extension=".json" #>
+<#@ include file="..\..\Shared\manifest.ttinclude" once="true" #>

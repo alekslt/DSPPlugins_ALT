@@ -1,0 +1,9 @@
+﻿{
+    "name": "VeinPlanter",
+    "version_number": "0.0.1",
+    "website_url": "https://github.com/alekslt/DSPPlugins_ALT/tree/master/VeinPlanter",
+    "description": "Replant mineral veins.",
+    "dependencies": [
+        "xiaoye97-BepInEx-5.4.5"
+    ]
+}
