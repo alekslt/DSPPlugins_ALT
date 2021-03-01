@@ -26,7 +26,14 @@ namespace DSPPlugins_ALT.GUI
 
         public override void UpdateSource()
         {
-            Source = DSPStatistics.logisticsStationStats.SelectMany(station => station.products, (station, product) => new ResStationGroup() { station = station, product = product });
+            if (ShouldAutoUpdate)
+            {
+                Source = DSPStatistics.logisticsStationStats.SelectMany(station => station.products, (station, product) => new ResStationGroup() { station = station, product = product });
+            } else
+            {
+                Source = DSPStatistics.logisticsStationStats.ToList().SelectMany(station => station.products, (station, product) => new ResStationGroup() { station = station, product = product });
+            }
+            
 
             foreach (var tbFilterKV in TabFilters)
             {

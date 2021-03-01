@@ -27,7 +27,15 @@ namespace DSPPlugins_ALT.GUI
         public override void UpdateSource()
         {
             // Source = DSPStatistics.notificationList.Values.SelectMany(x => x).ToList();
-            Source = DSPStatistics.minerStats;
+            
+            if (ShouldAutoUpdate)
+            {
+                Source = DSPStatistics.minerStats;
+            }
+            else
+            {
+                Source = DSPStatistics.minerStats.ToList();
+            }
 
             foreach (var tbFilterKV in TabFilters)
             {

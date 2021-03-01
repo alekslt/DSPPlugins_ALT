@@ -51,10 +51,12 @@ namespace DSPPlugins_ALT.GUI
 
         private void MinerStatistics_onStatSourcesUpdated(long obj)
         {
+            /*
             foreach (var source in DSPStatSources.Where(s => s.Value.ShouldAutoUpdate))
             {
                 source.Value.UpdateSource();
             }
+            */
         }
 
         /*
@@ -204,18 +206,25 @@ namespace DSPPlugins_ALT.GUI
             GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
             DSPStatSources[selectedTabSourceType].DrawFilterGUI(selectedTab);
             GUILayout.FlexibleSpace();
+
             GUILayout.BeginVertical();
+            bool shouldUpdate = false;
+            var oldAutoUpdateState = DSPStatSources[selectedTabSourceType].ShouldAutoUpdate;
             DSPStatSources[selectedTabSourceType].ShouldAutoUpdate = GUILayout.Toggle(DSPStatSources[selectedTabSourceType].ShouldAutoUpdate, $"AutoRefresh");
 
             var oldCollapsedState = DSPStatSources[selectedTabSourceType].DefaultIsChildrenCollapsedState;
             DSPStatSources[selectedTabSourceType].DefaultIsChildrenCollapsedState = GUILayout.Toggle(DSPStatSources[selectedTabSourceType].DefaultIsChildrenCollapsedState, $"AutoCollapsed");
             if (oldCollapsedState != DSPStatSources[selectedTabSourceType].DefaultIsChildrenCollapsedState)
+            if (oldAutoUpdateState != DSPStatSources[selectedTabSourceType].ShouldAutoUpdate)
+            {
+                shouldUpdate = true;
+            }
+            if (shouldUpdate)
             {
                 DSPStatSources[selectedTabSourceType].CollapsedState.Clear();
             }
             GUILayout.EndVertical();
-
-            
+ 
             GUILayout.EndHorizontal();
 
             sv = GUILayout.BeginScrollView(sv, UnityEngine.GUI.skin.box);
