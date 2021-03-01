@@ -110,7 +110,7 @@ namespace DSPPlugins_ALT.GUI
                 LINQFilter = (filter, source) =>
                 {
                     return source.Where(sg => (!sg.station.stationComponent.isStellar && filter.value > 0.5)
-                                            || (sg.station.stationComponent.isStellar && filter.value2 > 0.5)
+                                            || (sg.station.stationComponent.isStellar && !sg.station.stationComponent.isCollector && filter.value2 > 0.5)
                                             || (sg.station.stationComponent.isCollector && filter.value3 > 0.5)
                                             );
                 }
