@@ -206,6 +206,13 @@ namespace DSPPlugins_ALT.GUI
             GUILayout.FlexibleSpace();
             GUILayout.BeginVertical();
             DSPStatSources[selectedTabSourceType].ShouldAutoUpdate = GUILayout.Toggle(DSPStatSources[selectedTabSourceType].ShouldAutoUpdate, $"AutoRefresh");
+
+            var oldCollapsedState = DSPStatSources[selectedTabSourceType].DefaultIsChildrenCollapsedState;
+            DSPStatSources[selectedTabSourceType].DefaultIsChildrenCollapsedState = GUILayout.Toggle(DSPStatSources[selectedTabSourceType].DefaultIsChildrenCollapsedState, $"AutoCollapsed");
+            if (oldCollapsedState != DSPStatSources[selectedTabSourceType].DefaultIsChildrenCollapsedState)
+            {
+                DSPStatSources[selectedTabSourceType].CollapsedState.Clear();
+            }
             GUILayout.EndVertical();
 
             
