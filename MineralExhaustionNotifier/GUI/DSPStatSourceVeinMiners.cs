@@ -242,18 +242,42 @@ namespace DSPPlugins_ALT.GUI
             {
                 foreach (var planet in minersByPlanet)
                 {
-                    var myId = parentId + "." + planet.Key;
-                    
+                    var myPlanetId = parentId + "." + planet.Key;
+                    var resourcesByPlanet = planet
+                        .GroupBy(miner => miner.itemProto).OrderBy(g => g.Key.name.Translate())
+                        .Select(mtg => new { Name = mtg.Key.name.Translate(), Tex = mtg.First().resourceTexture, Miners = mtg.ToList(), SumMiningPerMin = mtg.Sum(m => m.miningRatePerMin) });
+
+
                     GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
-                    DrawCollapsedChildrenChevron(myId, out bool childrenCollapsed);
+                    DrawCollapsedChildrenChevron(myPlanetId, out bool childrenCollapsed);
                     GUILayout.Label($"<b>Planet {planet.Key}</b>", UITheme.TextAlignStyle);
+                    GUILayout.Label($"  <b>Number of resource types: {resourcesByPlanet.Count()}</b>", UITheme.TextAlignStyle);
                     GUILayout.EndHorizontal();
 
                     if (!childrenCollapsed)
                     {
-                        DrawVeinMinersHeader();
+                        foreach (var resource in resourcesByPlanet)
+                        {
+                            var myResId = myPlanetId + "." + resource.Name;
+                            var resourceTexture = resource.Tex ? resource.Tex : Texture2D.blackTexture;
 
-                        DrawVeinMiners(planet, parentId: myId);
+                            GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
+                            DrawCollapsedChildrenChevron(myResId, out bool resourceChildrenCollapsed);
+                            GUILayout.Label($"<b>Resource</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));
+                            GUILayout.Box(resourceTexture, UITheme.VeinIconLayoutOptions);
+                            GUILayout.Label($"<b>{resource.Name}</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));
+                            GUILayout.Label($"  <b># Miners: {resource.Miners.Count()}</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));
+                            GUILayout.Label($"  <b>Sum Mining Rate: {resource.SumMiningPerMin.ToString("F0")}</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));
+                            GUILayout.EndHorizontal();
+
+                            if (!resourceChildrenCollapsed)
+                            {
+                                DrawVeinMinersHeader();
+                                DrawVeinMiners(resource.Miners, parentId: myResId);
+                            }
+                          
+                        }
+
                     }
 
                 }
@@ -301,21 +325,41 @@ namespace DSPPlugins_ALT.GUI
 
                 foreach (var resourceGroup in miners)
                 {
-                    var myId = parentId + "." + resourceGroup.Name;
+                    var myResId = parentId + "." + resourceGroup.Name;
                     var resourceTexture = resourceGroup.Tex ? resourceGroup.Tex : Texture2D.blackTexture;
 
                     GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
-                    DrawCollapsedChildrenChevron(myId, out bool childrenCollapsed);
+                    DrawCollapsedChildrenChevron(myResId, out bool childrenCollapsed);
                     GUILayout.Label($"<b>Resource</b>", UITheme.TextAlignStyle, GUILayout.Width(65));
                     GUILayout.Box(resourceTexture, UITheme.VeinIconLayoutOptions);
-                    GUILayout.Label($"<b>{resourceGroup.Name}</b>", UITheme.TextAlignStyle);
-                    GUILayout.Label($"  <b>Sum MiningRate: {resourceGroup.SumMiningPerMin}</b>", UITheme.TextAlignStyle);
+                    GUILayout.Label($"<b>{resourceGroup.Name}</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));
+                    GUILayout.Label($"  <b>Sum Mining Rate: {resourceGroup.SumMiningPerMin.ToString("F0")}</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));
                     GUILayout.EndHorizontal();
+
+                    var minersByPlanetByResource = resourceGroup.Miners
+                        .OrderBy(m => m.minutesToEmptyVein)
+                        .GroupBy(m => m.planetName).OrderBy(g => g.Key)
+                        .Select(mtg => new { Name = mtg.Key, Miners = mtg.ToList(), SumMiningPerMin = mtg.Sum(m => m.miningRatePerMin) });
 
                     if (!childrenCollapsed)
                     {
-                        DrawVeinMinersHeader(includePlanet: true);
-                        DrawVeinMiners(resourceGroup.Miners, parentId: myId, includePlanet: true);
+                        foreach (var minersPlanet in minersByPlanetByResource)
+                        {
+                            var myMinersByPlanetId = myResId + "." + minersPlanet.Name;
+
+                            GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
+                            DrawCollapsedChildrenChevron(myMinersByPlanetId, out bool minersByPlanetChildrenCollapsed);
+                            GUILayout.Label($"<b>Planet {minersPlanet.Name}</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));
+                            GUILayout.Label($"  <b># Miners: {minersPlanet.Miners.Count()}</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));
+                            GUILayout.Label($"  <b>Sum Mining Rate: {minersPlanet.SumMiningPerMin.ToString("F0")}</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));
+                            GUILayout.EndHorizontal();
+
+                            if (!minersByPlanetChildrenCollapsed)
+                            {
+                                DrawVeinMinersHeader(includePlanet: false);
+                                DrawVeinMiners(minersPlanet.Miners, parentId: myMinersByPlanetId, includePlanet: false);
+                            }
+                        }
                     }
                 }
             }

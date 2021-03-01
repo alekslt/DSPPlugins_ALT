@@ -287,10 +287,10 @@ namespace DSPPlugins_ALT.GUI
 
                 foreach (var stationsPlanetGroup in stationsPerPlanet)
                 {
-                    var myId = parentId + "." + stationsPlanetGroup.planet.id;
+                    var myPlanetId = parentId + "." + stationsPlanetGroup.planet.id;
 
                     GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
-                    DrawCollapsedChildrenChevron(myId, out bool childrenCollapsed);
+                    DrawCollapsedChildrenChevron(myPlanetId, out bool childrenCollapsed);
                     GUILayout.Label($"<b>Planet {stationsPlanetGroup.planet.name.Translate() }</b>", UITheme.TextAlignStyle, GUILayout.Width(170));
                     GUILayout.EndHorizontal();
 
@@ -298,7 +298,7 @@ namespace DSPPlugins_ALT.GUI
                     {
                         foreach (var statProdGroup in stationsPlanetGroup.stations)
                         {
-                            var myStationId = parentId + "." + statProdGroup.station.stationComponent.id;
+                            var myStationId = myPlanetId + "." + statProdGroup.station.stationComponent.id;
                             GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
 
                             GUILayout.BeginVertical(UnityEngine.GUI.skin.box, GUILayout.Width(75), GUILayout.MaxWidth(75));
@@ -379,13 +379,42 @@ namespace DSPPlugins_ALT.GUI
                         {
                             if (pres.stations.Count() > 0)
                             {
+                                var logTypeByResourceId = myId + "." + pres.name;
+
+                                var stationsByPlanetByResource = pres.stations
+                                    .GroupBy(m => m.station.planetData.name.Translate()).OrderBy(g => g.Key)
+                                    .Select(mtg => new { Name = mtg.Key, Stations = mtg.ToList()});
+
                                 GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
                                 GUILayout.BeginVertical(UnityEngine.GUI.skin.box, GUILayout.Width(75), GUILayout.MaxWidth(75));
+                                DrawCollapsedChildrenChevron(logTypeByResourceId, out bool logTypeByResourceChildrenCollapsed);
                                 GUILayout.Label($"{pres.name}", pres.style);
                                 GUILayout.EndVertical();
-                                GUILayout.BeginVertical();
-                                DrawStationResourceGUI(pres.stations, MaxWidth: 165, MaxStationsPerLine: 4);
-                                GUILayout.EndVertical();
+
+                                if (!logTypeByResourceChildrenCollapsed)
+                                {
+                                    GUILayout.BeginVertical();
+                                    foreach (var stationsPlanet in stationsByPlanetByResource)
+                                    {
+                                        var mStationsByPlanetId = logTypeByResourceId + "." + stationsPlanet.Name;
+                                        GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
+                                        DrawCollapsedChildrenChevron(mStationsByPlanetId, out bool stationsByPlanetChildrenCollapsed);
+                                        GUILayout.Label($"<b>Planet {stationsPlanet.Name}</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));
+                                        GUILayout.Label($"  <b># P.L.S: {stationsPlanet.Stations.Where(s => !s.station.stationComponent.isStellar).Count()}</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));
+                                        GUILayout.Label($"  <b># I.L.S: {stationsPlanet.Stations.Where(s => s.station.stationComponent.isStellar && !s.station.stationComponent.isCollector).Count()}</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));
+                                        GUILayout.Label($"  <b># Collectors: {stationsPlanet.Stations.Where(s => s.station.stationComponent.isCollector).Count()}</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));
+                                        GUILayout.EndHorizontal();
+
+                                        if (!stationsByPlanetChildrenCollapsed)
+                                        {
+                                            GUILayout.BeginVertical();
+                                            DrawStationResourceGUI(stationsPlanet.Stations, MaxWidth: 165, MaxStationsPerLine: 4);
+                                            GUILayout.EndVertical();
+                                        }
+                                    }
+                                    GUILayout.EndVertical();
+                                }
+
                                 GUILayout.EndHorizontal();
                             }
                         }
