@@ -63,7 +63,7 @@ namespace VeinPlanter.Service
                     closestVeinDistance2D = closestVeinGroupDistance;
                     foreach (var candkv in limitedCandidates)
                     {
-                        Debug.Log("Cand: VeinGroup Idx=" + candkv.Key + "\t Dist: " + candkv.Value);
+                        //Debug.Log("Cand: VeinGroup Idx=" + candkv.Key + "\t Dist: " + candkv.Value);
 
                         for (int i = 1; i < localPlanet.factory.veinCursor; i++)
                         {
@@ -87,7 +87,7 @@ namespace VeinPlanter.Service
                             }
                         }
                     }
-                    Debug.Log("Closest: VgIdx=" + closestVeinGroupIndex + " Vein Idx=" + closestVeinIndex + "\t Dist: " + closestVeinDistance + ", Dist2D: " + closestVeinDistance2D);
+                    //Debug.Log("Closest: VgIdx=" + closestVeinGroupIndex + " Vein Idx=" + closestVeinIndex + "\t Dist: " + closestVeinDistance + ", Dist2D: " + closestVeinDistance2D);
 
 
 
@@ -113,7 +113,7 @@ namespace VeinPlanter.Service
                         return true;
                     } else
                     {
-                        Debug.Log("Resetting to -1! Distance is above: 5");
+                        //Debug.Log("Resetting to -1! Distance is above: 5");
                         closestVeinGroupIndex = -1;
                         closestVeinIndex = -1;
                         closestVeinDistance2D = -1;
@@ -132,11 +132,11 @@ namespace VeinPlanter.Service
                                      select vein.pos).ToList();
 
                 var averagePosition = veinPositions.Aggregate(Vector3.zero, (acc, v) => acc + v) / veinPositions.Count;
-                Debug.Log("VeinGroup Pos for index=" + veinGroupIndex + " was: " + veinGroup.pos.ToString() + " is now: " + averagePosition.normalized);
+                // Debug.Log("VeinGroup Pos for index=" + veinGroupIndex + " was: " + veinGroup.pos.ToString() + " is now: " + averagePosition.normalized);
                 veinGroup.pos = averagePosition.normalized;
             }
 
-            public static void ChangeType(int veinGroupIndex, EVeinType newType, PlanetData localPlanet)
+            public static void ChangeType(int veinGroupIndex, EVeinType newType, PlanetData localPlanet, int productId = -1)
             {
                 ref PlanetData.VeinGroup veinGroup = ref localPlanet.veinGroups[veinGroupIndex];
                 veinGroup.type = newType;
@@ -158,7 +158,7 @@ namespace VeinPlanter.Service
                     // Remove the old vein model instance from the GPU Instancing
                     localPlanet.factoryModel.gpuiManager.RemoveModel(vein.modelIndex, vein.modelId, setBuffer: false);
 
-                    vein.productId = PlanetModelingManager.veinProducts[veinTypeIndex];
+                    vein.productId = productId == -1 ? PlanetModelingManager.veinProducts[veinTypeIndex] : productId;
                     vein.type = newType;
                     vein.modelIndex = (short)random.Next(PlanetModelingManager.veinModelIndexs[veinTypeIndex],
                         PlanetModelingManager.veinModelIndexs[veinTypeIndex] + PlanetModelingManager.veinModelCounts[veinTypeIndex]);
@@ -173,7 +173,21 @@ namespace VeinPlanter.Service
                     veinAnim.power = 0f;
 
                     GameMain.localPlanet.factory.RefreshVeinMiningDisplay(i, 0, 0);
+                    Debug.Log("vein.minerCount: " + vein.minerCount);
+                    Debug.Log("vein.minerId0: " + vein.minerId0);
+                    if (vein.minerCount > 0)
+                    {
+                        if (vein.minerId0 != 0 && localPlanet.factory.entityCursor > vein.minerId0)
+                        {
+                            //ref EntityData minerEntity = ref localPlanet.factory.entityPool[vein.minerId0];
+                            //Debug.Log("minerEntity.id: " + minerEntity.id + " minerId: " + minerEntity.minerId);
+                            // localPlanet.factory.factorySystem.minerPool[minerEntity.minerId].id == i                            
+                            //localPlanet.factory.factorySystem.minerPool[minerEntity.minerId].productId = productId;
+                            localPlanet.factory.entitySignPool[vein.minerId0].iconId0 = (uint)productId;
+                        }
+                    }
                 }
+                BGMController.instance.uiGame.veinDetail.CreateOrOpenATip(localPlanet, veinGroupIndex).Refresh();
                 GameMain.localPlanet.factoryModel.gpuiManager.SyncAllGPUBuffer();
                 /*
                 var veinPositions = (from vein in GameMain.localPlanet.factory.veinPool
@@ -182,9 +196,26 @@ namespace VeinPlanter.Service
                                      select vein.pos).ToList();
                 */
             }
+
+            internal static void UpdateVeinAmount(int veinGroupIndex, long value, PlanetData localPlanet)
+            {
+                ref PlanetData.VeinGroup veinGroup = ref localPlanet.veinGroups[veinGroupIndex];
+                veinGroup.amount = (long)value;
+                int newAvg = (int)(value / veinGroup.count);
+
+                for (int i = 1; i < localPlanet.factory.veinCursor; i++)
+                {
+                    ref VeinData vein = ref localPlanet.factory.veinPool[i];
+                    ref AnimData veinAnim = ref localPlanet.factory.veinAnimPool[i];
+                    // Skip invalid veins and veins from other groups.
+                    if (i != vein.id
+                        || vein.groupIndex != veinGroupIndex)
+                    {
+                        continue;
+                    }
+                    vein.amount = newAvg;
+                }
+            }
         }
-        
-
-
     }
 }

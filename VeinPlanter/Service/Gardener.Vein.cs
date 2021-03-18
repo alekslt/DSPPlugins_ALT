@@ -19,13 +19,13 @@ namespace VeinPlanter.Service
 
                 ref PlanetData.VeinGroup veinGroup = ref localPlanet.veinGroups[veinGroupIndex];
 
-                short veinTypeIndex = (int)EVeinType.Iron;
+                short veinTypeIndex = (short)veinGroup.type;
 
                 VeinProto veinProto = PlanetModelingManager.veinProtos[veinTypeIndex];
 
                 var veinCursor = localPlanet.factory.veinCursor + 1;
                 VeinData vein = default(VeinData);
-                vein.type = EVeinType.Iron;
+                vein.type = veinGroup.type;
                 vein.groupIndex = (short)veinGroupIndex;
                 vein.modelIndex = (short)random.Next(PlanetModelingManager.veinModelIndexs[veinTypeIndex], PlanetModelingManager.veinModelIndexs[veinTypeIndex] + PlanetModelingManager.veinModelCounts[veinTypeIndex]);
                 vein.amount = 100;
