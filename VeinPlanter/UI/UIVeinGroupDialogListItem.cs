@@ -6,5 +6,6 @@ namespace VeinPlanter
     {
 		public Texture2D tex;
 		public string name;
+        public int productId;
     }
 }

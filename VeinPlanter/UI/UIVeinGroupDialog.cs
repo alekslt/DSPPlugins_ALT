@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,12 +13,13 @@ namespace VeinPlanter
 
     public class UIVeinGroupDialog
     {
-        private static Rect winRect = new Rect(0, 0, 450, 200);
+        private static Rect winRect = new Rect(0, 0, 450, 450);
 		public Boolean Show { get; set; } = false;
 
 		// private static GUISkin customSkin = null;
 
 		public DropDownGUILayout<UIVeinGroupDialogListItem> dropdown = new DropDownGUILayout<UIVeinGroupDialogListItem>();
+		public DropDownGUILayout<UIVeinGroupDialogListItem> dropdownItems = new DropDownGUILayout<UIVeinGroupDialogListItem>();
 
 		public PlanetData localPlanet { get; set; }
 
@@ -28,6 +30,9 @@ namespace VeinPlanter
 		private static GUIStyle buttonStyle;
 
 		private static Texture2D DialogueBackgroundTexture;
+
+		List<int> products = new List<int>() { 1001, 1002, 1003, 1004, 1005, 1006, 1030, 1031, 1011, 1012, 1013, 1014, 1015, 1016, 1101, 1104, 1105, 1106, 1108, 1109, 1103, 1107, 1110, 1119, 1111, 1112, 1113, 1201, 1102, 1202, 1203, 1204, 1205, 1206, 1127, 1301, 1303, 1305, 1302, 1304, 1402, 1401, 1404, 1501, 1000, 1007, 1114, 1116, 1120, 1121, 1122, 1208, 1801, 1802, 1803, 1115, 1123, 1124, 1117, 1118, 1126, 1209, 1210, 1403, 1405, 1406, 5001, 5002, 1125, 1502, 1503, 1131, 1141, 1142, 1143, 2001, 2002, 2003, 2011, 2012, 2013, 2020, 2101, 2102, 2106, 2303, 2304, 2305, 2201, 2202, 2212, 2203, 2204, 2211, 2301, 2302, 2307, 2308, 2306, 2309, 2314, 2313, 2205, 2206, 2207, 2311, 2208, 2312, 2209, 2310, 2210, 2103, 2104, 2105, 2901, 6001, 6002, 6003, 6004, 6005, 6006 };
+
 
 		public bool DrawItem(UIVeinGroupDialogListItem t)
         {
@@ -51,6 +56,18 @@ namespace VeinPlanter
 				if (itemProto != null)
 				{
 					dropdown.list.Add(new UIVeinGroupDialogListItem() { tex= itemProto.iconSprite.texture, name= itemProto.name.Translate() });
+				}
+			}
+
+
+			dropdownItems.DrawItem = DrawItem;
+			
+			foreach (int prodId in products)
+			{
+				ItemProto itemProto = prodId != 0 ? LDB.items.Select(prodId) : null;
+				if (itemProto != null)
+				{
+					dropdownItems.list.Add(new UIVeinGroupDialogListItem() { tex = itemProto.iconSprite.texture, name = itemProto.name.Translate(), productId= prodId });
 				}
 			}
 
@@ -91,7 +108,8 @@ namespace VeinPlanter
 			//  Debug.Log("rectPoint: " + rectPoint);
 			winRect.x = Mathf.Round(screenPoint.x);
 			winRect.y = Mathf.Round(screenPoint.y);
-
+			winRect.x += 10;
+			winRect.y += 10;
 
 			if (winRect.xMax > Screen.width)
 			{
@@ -148,7 +166,7 @@ namespace VeinPlanter
 			windowStyle = new GUIStyle(UnityEngine.GUI.skin.window);
 			windowStyle.contentOffset = new Vector2(0,0);
 			windowStyle.border = new RectOffset(0, 0, 0, 0);
-			windowStyle.padding = new RectOffset(30, 30, 30, 30);
+			windowStyle.padding = new RectOffset(30, 30, 70, 30);
 			windowStyle.onActive.background = windowStyle.onFocused.background = windowStyle.onHover.background = windowStyle.onNormal.background = myImage;
 			windowStyle.normal.background = windowStyle.active.background = windowStyle.focused.background = windowStyle.hover.background = myImage;
 
@@ -182,9 +200,16 @@ namespace VeinPlanter
 			}
 		}
 
-        private void WindowFunc(int id)
+		bool largeMax = true;
+
+		private void WindowFunc(int id)
         {
-			PlanetData.VeinGroup veinGroup = localPlanet.veinGroups[veinGroupIndex];
+			if (localPlanet == null || localPlanet.factory == null)
+            {
+				VeinPlanter.dialog = null;
+				return;
+            }
+ 			ref PlanetData.VeinGroup veinGroup = ref localPlanet.veinGroups[veinGroupIndex];
 			int veinProduct = PlanetModelingManager.veinProducts[(int)veinGroup.type];
 			ItemProto itemProto = veinProduct != 0 ? LDB.items.Select(veinProduct) : null;
 			Texture2D texture = null;
@@ -198,19 +223,123 @@ namespace VeinPlanter
 			
 
 			GUILayout.BeginHorizontal(GUILayout.Width(380));
-
+			GUILayout.BeginVertical();
 			dropdown.indexNumber = (int)veinGroup.type - 1;
 			if (dropdown.OnGUI(225, GUILayout.MinHeight(42), GUILayout.MinWidth(150), GUILayout.MaxWidth(150)))
 			{
 				Gardener.VeinGroup.ChangeType(veinGroupIndex, (EVeinType)dropdown.indexNumber + 1, localPlanet);
 			}
+			var prodId = (localPlanet != null && localPlanet.factory != null) ? (from vein in localPlanet.factory.veinPool where vein.groupIndex == veinGroupIndex select vein.productId).First() : products[0];
+			
+			if (veinGroup.type == EVeinType.Oil)
+            {
+				dropdownItems.indexNumber = products.FindIndex(i => i == prodId);
+				if (dropdownItems.OnGUI(225, GUILayout.MinHeight(42), GUILayout.MinWidth(150), GUILayout.MaxWidth(150)))
+				{
+					Gardener.VeinGroup.ChangeType(veinGroupIndex, (EVeinType)dropdown.indexNumber + 1, localPlanet, productId: dropdownItems.list[dropdownItems.indexNumber].productId);
+				}
+
+			}
+
+
+			GUILayout.EndVertical();
 			/*
 			GUILayout.Box(texture, VeinIconLayoutOptions);
 			GUILayout.Box("Type "+ veinGroup.type + "\n" + veinName);
 			*/
-			GUILayout.BeginVertical(GUILayout.Width(150));
+			GUILayout.BeginVertical(GUILayout.Width(200));
 			GUILayout.Label("Count " + veinGroup.count);
-			GUILayout.Label("Amount " + veinGroup.amount);
+			
+
+			float maxAmount;
+			float oilMax = 120f;
+			float currentValue = veinGroup.amount;
+			float oreMultiplier = 0.000001f;
+
+			if (veinGroup.type == EVeinType.Oil)
+            {
+				maxAmount = 2500000f;
+				maxAmount  = oilMax;
+				currentValue *= VeinData.oilSpeedMultiplier;
+				GUILayout.Label("Amount " + currentValue.ToString("n2"));
+			} else
+            {
+				//maxAmount = 1000000f * 100;
+				maxAmount = 10;
+				largeMax = GUILayout.Toggle(largeMax, "Large Max");
+				if (largeMax)
+				{
+					//maxAmount = 20000000000f;
+					maxAmount = 21000;
+				}
+				currentValue *= oreMultiplier;
+				GUILayout.Label("Amount " + veinGroup.amount.ToString("n0"));
+			}
+
+			
+
+			float newValue;
+			if (veinGroup.type == EVeinType.Oil)
+            {
+				newValue = GUILayout.HorizontalSlider(currentValue, 0, maxAmount);
+				if (newValue != currentValue)
+				{
+					// Debug.Log("Setting new veinGroup Amount to= CurAmount: " + veinGroup.amount + ",  newValue: " + newValue + " Conv: " + newValue / VeinData.oilSpeedMultiplier);
+					Gardener.VeinGroup.UpdateVeinAmount(veinGroupIndex, (long)(newValue / VeinData.oilSpeedMultiplier), localPlanet);
+				}
+			} else
+            {
+				newValue = GUILayout.HorizontalSlider(currentValue, 0, maxAmount);
+				if (newValue != currentValue)
+				{
+					Gardener.VeinGroup.UpdateVeinAmount(veinGroupIndex, (long)(newValue / oreMultiplier), localPlanet);
+				}
+			}
+			
+
+
+			/*
+			if (GUILayout.Button("Magic "))
+            {
+				veinGroup.type = EVeinType.Oil;
+
+				int veinTypeIndex = (int)veinGroup.type;
+
+				for (int i = 1; i < localPlanet.factory.veinCursor; i++)
+				{
+					ref VeinData vein = ref localPlanet.factory.veinPool[i];
+					ref AnimData veinAnim = ref localPlanet.factory.veinAnimPool[i];
+
+					// Skip invalid veins and veins from other groups.
+					if (i != vein.id
+						|| vein.groupIndex != veinGroupIndex)
+					{
+						continue;
+					}
+
+					// Remove the old vein model instance from the GPU Instancing
+					localPlanet.factoryModel.gpuiManager.RemoveModel(vein.modelIndex, vein.modelId, setBuffer: false);
+
+					vein.productId = 6006; //PlanetModelingManager.veinProducts[veinTypeIndex];
+					vein.type = veinGroup.type;
+					vein.modelIndex = (short)random.Next(PlanetModelingManager.veinModelIndexs[veinTypeIndex],
+						PlanetModelingManager.veinModelIndexs[veinTypeIndex] + PlanetModelingManager.veinModelCounts[veinTypeIndex]);
+					vein.modelId = localPlanet.factoryModel.gpuiManager.AddModel(
+						vein.modelIndex, i, vein.pos, Maths.SphericalRotation(vein.pos,
+						UnityEngine.Random.value * 360f), setBuffer: false);
+
+					veinAnim.time = ((vein.amount < 20000) ? (1f - (float)vein.amount * 5E-05f) : 0f);
+					veinAnim.prepare_length = 0f;
+					veinAnim.working_length = 1f;
+					veinAnim.state = (uint)vein.type;
+					veinAnim.power = 0f;
+
+					GameMain.localPlanet.factory.RefreshVeinMiningDisplay(i, 0, 0);
+				}
+				GameMain.localPlanet.factoryModel.gpuiManager.SyncAllGPUBuffer();
+			}
+			*/
+
 			GUILayout.EndVertical();
 
 			GUILayout.EndHorizontal();
