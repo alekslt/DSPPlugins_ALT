@@ -26,6 +26,9 @@ namespace DSPPlugins_ALT.GUI
             DefaultCollapsedStateLevel[1] = false;
             DefaultCollapsedStateLevel[2] = false;
             DefaultCollapsedStateLevel[3] = true;
+
+            MaxCollapseLevel[eTAB_TYPES.TAB_PLANET] = 2;
+            MaxCollapseLevel[eTAB_TYPES.TAB_RESOURCE] = 2;
         }
 
         public override void UpdateSource()
@@ -219,7 +222,7 @@ namespace DSPPlugins_ALT.GUI
 
             GUILayout.BeginVertical(GUILayout.MaxWidth(80));
             GUILayout.Label($"<b>Filters</b>", UITheme.TextAlignStyle);
-            GUILayout.Label($"({TabFilterInfo[selectedTab].ItemsAfter}/{TabFilterInfo[selectedTab].ItemsBefore})", UITheme.TextAlignStyle);
+            GUILayout.Label($"Showing: ({TabFilterInfo[selectedTab].ItemsAfter}/{TabFilterInfo[selectedTab].ItemsBefore})", UITheme.TextAlignStyle);
             GUILayout.EndVertical();
 
             foreach (var filter in TabFilters[selectedTab])
@@ -387,16 +390,16 @@ namespace DSPPlugins_ALT.GUI
 
                                 GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
                                 GUILayout.BeginVertical(UnityEngine.GUI.skin.box, GUILayout.Width(75), GUILayout.MaxWidth(75));
-                                DrawCollapsedChildrenChevron(logTypeByResourceId, out bool logTypeByResourceChildrenCollapsed);
+                                //DrawCollapsedChildrenChevron(logTypeByResourceId, out bool logTypeByResourceChildrenCollapsed);
                                 GUILayout.Label($"{pres.name}", pres.style);
                                 GUILayout.EndVertical();
 
-                                if (!logTypeByResourceChildrenCollapsed)
+                                //if (!logTypeByResourceChildrenCollapsed)
                                 {
                                     GUILayout.BeginVertical();
                                     foreach (var stationsPlanet in stationsByPlanetByResource)
                                     {
-                                        var mStationsByPlanetId = logTypeByResourceId + "." + stationsPlanet.Name;
+                                        var mStationsByPlanetId = logTypeByResourceId + "-" + stationsPlanet.Name;
                                         GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
                                         DrawCollapsedChildrenChevron(mStationsByPlanetId, out bool stationsByPlanetChildrenCollapsed);
                                         GUILayout.Label($"<b>Planet {stationsPlanet.Name}</b>", UITheme.TextAlignStyle, GUILayout.MinWidth(65));

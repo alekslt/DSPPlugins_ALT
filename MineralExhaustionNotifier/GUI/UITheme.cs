@@ -26,11 +26,13 @@ namespace DSPPlugins_ALT.GUI
 
         public static GUIStyle DemandStyle;
         public static GUIStyle SupplyStyle;
-
+        public static GUIStyle ContainerDisclureIconStyle;
+        
         public static Texture2D[] Sign_state;
         public static Texture2D Menu_button_texture;
         public static Texture2D Tab_menu_button_texture;
         public static Texture2D Tab_menu_button_texture_selected;
+        public static Texture2D DotButton;
 
         public static void Init()
         {
@@ -71,7 +73,12 @@ namespace DSPPlugins_ALT.GUI
                 Tab_menu_button_texture_selected = Texture2D.blackTexture;
             }
 
-
+            DotButton = Resources.Load<Texture2D>("ui/textures/sprites/sci-fi/panel-rect-1");
+            if (DotButton == null)
+            {
+                Debug.LogWarning("Failed Loading DotButton");
+                DotButton = Texture2D.blackTexture;
+            }
 
             TextAlignStyle = new GUIStyle(UnityEngine.GUI.skin.label);
             TextAlignStyle.alignment = TextAnchor.MiddleLeft;
@@ -114,6 +121,12 @@ namespace DSPPlugins_ALT.GUI
             // slider = MineralExhaustionNotifier.instance.gameObject.AddComponent<Slider>();
             //sourceCombo = MineralExhaustionNotifier.instance.gameObject.AddComponent<UIComboBox>();
             //sourceCombo.Items = new List<string>() {"A", "B" };
+
+            ContainerDisclureIconStyle = new GUIStyle(UnityEngine.GUI.skin.label);
+            ContainerDisclureIconStyle.border = new RectOffset(6, 6, 6, 6);
+            ContainerDisclureIconStyle.normal.background = ContainerDisclureIconStyle.hover.background = ContainerDisclureIconStyle.active.background = DotButton;
+            ContainerDisclureIconStyle.fontSize = 22;
+            ContainerDisclureIconStyle.padding.left = 6;
         }
     }
 }

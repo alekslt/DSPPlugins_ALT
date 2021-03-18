@@ -27,6 +27,10 @@ namespace DSPPlugins_ALT.GUI
             DefaultCollapsedStateLevel[1] = false;
             DefaultCollapsedStateLevel[2] = true;
             DefaultCollapsedStateLevel[3] = false;
+
+            MaxCollapseLevel[eTAB_TYPES.TAB_PLANET] = 2;
+            MaxCollapseLevel[eTAB_TYPES.TAB_NETWORK] = 2;
+            MaxCollapseLevel[eTAB_TYPES.TAB_RESOURCE] = 2;
         }
         public override void UpdateSource()
         {
@@ -156,7 +160,7 @@ namespace DSPPlugins_ALT.GUI
             bool shouldUpdateFiltered = false;
             GUILayout.BeginVertical(GUILayout.MaxWidth(80));
             GUILayout.Label($"<b>Filters</b>", UITheme.TextAlignStyle);
-            GUILayout.Label($"({TabFilterInfo[selectedTab].ItemsAfter}/{TabFilterInfo[selectedTab].ItemsBefore})", UITheme.TextAlignStyle);
+            GUILayout.Label($"Showing: ({TabFilterInfo[selectedTab].ItemsAfter}/{TabFilterInfo[selectedTab].ItemsBefore})", UITheme.TextAlignStyle);
             GUILayout.EndVertical();
 
             foreach (var filter in TabFilters[selectedTab])

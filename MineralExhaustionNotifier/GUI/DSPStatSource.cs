@@ -12,6 +12,7 @@ namespace DSPPlugins_ALT.GUI
         public IList<eTAB_TYPES> TABPages;
         public Dictionary<eTAB_TYPES, TabFilterInfo> TabFilterInfo = new Dictionary<eTAB_TYPES, TabFilterInfo>();
         public Dictionary<string, bool> CollapsedState = new Dictionary<string, bool>();
+        public Dictionary<eTAB_TYPES, int> MaxCollapseLevel = new Dictionary<eTAB_TYPES, int>();
 
         public abstract void UpdateSource();
         public abstract void DrawFilterGUI(eTAB_TYPES selectedTab);
@@ -47,7 +48,7 @@ namespace DSPPlugins_ALT.GUI
         public void DrawCollapsedChildrenChevron(string myId, out bool childrenCollapsed)
         {
             childrenCollapsed = IsItemChildrenCollapsed(myId);
-            if (GUILayout.Button(childrenCollapsed ? ">>" : "\\/", UITheme.VeinIconLayoutOptions))
+            if (GUILayout.Button(childrenCollapsed ? ">" : "▼", UITheme.ContainerDisclureIconStyle, UITheme.VeinIconLayoutOptions))
             {
                 CollapsedState[myId] = !childrenCollapsed;
             }
