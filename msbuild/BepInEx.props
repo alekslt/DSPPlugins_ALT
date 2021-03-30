@@ -1,0 +1,30 @@
+<Project>
+  <PropertyGroup>
+    <!--PluginsPath>   C:\Users\aleks\AppData\Roaming\r2modmanPlus-local\DysonSphereProgram\profiles\Default\BepInEx\scripts\<</PluginsPath-->
+    <PluginsPath>$(GameInstallLocation)BepInEx\scripts\</PluginsPath>
+    <OutputPath>$(PluginsPath)$(Company)-$(MSBuildProjectName)\</OutputPath>
+      <!-- TODO DSP store, local build: how to ensure it's installed though? -->
+  </PropertyGroup>
+
+  <!-- Add BepInEx and Harmony references -->
+  <ItemGroup Label="BepInExReferences">
+    <PackageReference Include="BepInEx.Analyzers" Version="1.0.4" PrivateAssets="all" />
+    
+    <BIEReference Include="0Harmony.dll" />
+
+    <BIEReference Include="BepInEx.dll" />
+    <BIEReference Include="BepInEx.Preloader.dll" />
+
+    <BIEReference Include="Mono.Cecil.dll" />
+    <BIEReference Include="Mono.Cecil.Mdb.dll" />
+    <BIEReference Include="Mono.Cecil.Pdb.dll" />
+    <BIEReference Include="Mono.Cecil.Rocks.dll" />
+
+    <BIEReference Include="MonoMod.RuntimeDetour.dll" />
+    <BIEReference Include="MonoMod.Utils.dll" />
+
+    <Reference Include="@(BIEReference->'$(GameInstallLocation)BepInEx\core\%(Identity)')"
+               Private="False"
+               SpecificVersion="true" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,24 @@
+<Project>
+  <!-- Import configuration files -->
+  <Import Project="$(MSBuildThisFileDirectory)..\config\Game.props" />
+  <Import Project="$(MSBuildThisFileDirectory)..\config\Repo.props" />
+  <Import Project="$(MSBuildThisFileDirectory)..\config\Unity.props" />
+
+  <PropertyGroup Label="Build Configuration">
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+
+    <!-- Simplify output paths -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    
+    <!-- Analyzers and -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <!-- Git auto-versioning -->
+  <ItemGroup>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.3.37" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

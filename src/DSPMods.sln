@@ -1,0 +1,80 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{6098CA01-6817-408F-B7DF-9008C48750AA}"
+	ProjectSection(SolutionItems) = preProject
+		..\.editorconfig = ..\.editorconfig
+		..\LICENSE = ..\LICENSE
+		..\README.md = ..\README.md
+		version.json = version.json
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VeinPlanter", "VeinPlanter\VeinPlanter.csproj", "{F15DFCF1-CD2E-4545-AC9B-AEF8F87EEB83}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MSBuild", "MSBuild", "{C5D307A5-2F9C-4D14-83CA-9E8465982BC8}"
+	ProjectSection(SolutionItems) = preProject
+		..\msbuild\BepInEx.props = ..\msbuild\BepInEx.props
+		..\msbuild\BepInEx.targets = ..\msbuild\BepInEx.targets
+		..\msbuild\Config.props = ..\msbuild\Config.props
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		..\msbuild\README.md = ..\msbuild\README.md
+		..\msbuild\Thunderstore.props = ..\msbuild\Thunderstore.props
+		..\msbuild\Thunderstore.targets = ..\msbuild\Thunderstore.targets
+		..\msbuild\Unity.props = ..\msbuild\Unity.props
+		..\msbuild\Unity.targets = ..\msbuild\Unity.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThunderstoreTemplates", "ThunderstoreTemplates", "{44F86EDC-6512-4522-BF94-2022A88A6294}"
+	ProjectSection(SolutionItems) = preProject
+		..\Thunderstore\dsp_logo_1024.png = ..\Thunderstore\dsp_logo_1024.png
+		..\Thunderstore\dsp_logo_256.png = ..\Thunderstore\dsp_logo_256.png
+		..\Thunderstore\README.md = ..\Thunderstore\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{6B952F3E-7BFD-4EA3-9C87-30908567FCF6}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\Assembly-CSharp.xml = ..\docs\Assembly-CSharp.xml
+		..\docs\README.md = ..\docs\README.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "..\tests\Tests.csproj", "{129E489B-B13B-4160-8720-F0A8666DE00D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{192D53FA-EE6A-4356-A81D-392CBBC37835}"
+	ProjectSection(SolutionItems) = preProject
+		..\config\Game.props = ..\config\Game.props
+		..\config\README.md = ..\config\README.md
+		..\config\Repo.props = ..\config\Repo.props
+		..\config\Unity.props = ..\config\Unity.props
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestScript", "TestScript\TestScript.csproj", "{89AFA751-1CC5-45D0-8F9D-F423025CD152}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F15DFCF1-CD2E-4545-AC9B-AEF8F87EEB83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F15DFCF1-CD2E-4545-AC9B-AEF8F87EEB83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F15DFCF1-CD2E-4545-AC9B-AEF8F87EEB83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F15DFCF1-CD2E-4545-AC9B-AEF8F87EEB83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{129E489B-B13B-4160-8720-F0A8666DE00D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{129E489B-B13B-4160-8720-F0A8666DE00D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{129E489B-B13B-4160-8720-F0A8666DE00D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{129E489B-B13B-4160-8720-F0A8666DE00D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89AFA751-1CC5-45D0-8F9D-F423025CD152}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89AFA751-1CC5-45D0-8F9D-F423025CD152}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89AFA751-1CC5-45D0-8F9D-F423025CD152}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89AFA751-1CC5-45D0-8F9D-F423025CD152}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {61BEE76E-571D-491A-9559-FBA8FE57AE52}
+	EndGlobalSection
+EndGlobal

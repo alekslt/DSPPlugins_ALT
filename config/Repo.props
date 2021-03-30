@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <RepositoryUrl>https://github.com/alekslt/DSPPlugins_ALT</RepositoryUrl>
+    <Company>alekslt</Company>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)..\artifacts\</PackageOutputPath>
+
+    <DefineConstants Condition=" '$(Configuration)' == 'Debug' ">$(DefineConstants);VERBOSE_LOG;DEVELOPMENT</DefineConstants>
+  </PropertyGroup>
+</Project>

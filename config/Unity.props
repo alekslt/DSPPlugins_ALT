@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup Label="Unity Mono Debugger">
+    <UnityVersion>2018.4.12f1</UnityVersion>
+    <UnityHubRoot>C:\Program Files\Unity\Hub</UnityHubRoot>
+    <UnityInstall>$(UnityHubRoot)\Editor\$(UnityVersion)</UnityInstall>
+
+    <GameVersionBackup>D:\dsp_backups\</GameVersionBackup>
+    
+    <!--
+      1. Copy the Mono dll into the game folder $(UnityGameName)_Data\Mono
+      2. launchSettings.json: set environment variable: MONO_DEBUGGER_AGENT="transport=dt_socket,address=127.0.0.1:56000,defer=y"
+      3. Debug -> Attach Unity Debugger -> 127.0.0.1:56000
+      -->
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,14 @@
+<Project>
+  <!-- Always include Shared files, they don't add up to much -->
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Shared/*" LinkBase="Shared" />
+  </ItemGroup>
+
+  <!-- Include build configuration -->
+  <Import Project="$(MSBuildThisFileDirectory)..\msbuild\Config.props" />
+
+  <!-- Include definitions for tasks -->
+  <Import Project="$(MSBuildThisFileDirectory)..\msbuild\Unity.props"/>
+  <Import Project="$(MSBuildThisFileDirectory)..\msbuild\BepInEx.props" />
+  <Import Project="$(MSBuildThisFileDirectory)..\msbuild\Thunderstore.props" />
+</Project>

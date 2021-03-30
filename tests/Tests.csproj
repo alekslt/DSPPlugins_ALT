@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net35</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="WhatTheBreakTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\src\Shared\ArrayUtil.cs" LinkBase="Import" />
+    <Compile Include="..\src\Shared\CompilerServicesStubs.cs" LinkBase="Import" />
+    <Compile Include="..\src\Shared\RealFakeSpan.cs" LinkBase="Import" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="WhatTheBreakTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="jnm2.ReferenceAssemblies.net35" Version="1.0.1" PrivateAssets="All" />
+    <PackageReference Include="NUnit" Version="3.12.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+  </ItemGroup>
+</Project>

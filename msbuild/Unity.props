@@ -1,0 +1,42 @@
+<Project>
+  <PropertyGroup>
+    <UnityAssembliesPath>$(GameInstallLocation)$(UnityGameName)_Data\Managed\</UnityAssembliesPath>
+    
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net35' ">
+    <!-- Always generate debug information -->
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup Label="BCL .NET 3.5" Condition=" '$(TargetFramework)' == 'net35' ">
+    <!-- TODO: Maybe resolve from actual Unity app? -->
+    <PackageReference Include="jnm2.ReferenceAssemblies.net35" Version="1.0.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Label="UnityReferences">
+    <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.10.0" PrivateAssets="All" />
+
+    <!--UnityReference Include="Assembly-CSharp.dll" /-->
+
+    <UnityReference Include="Mono.Posix.dll" />
+
+    <UnityReference Include="UnityEngine.dll" />
+    <UnityReference Include="UnityEngine.AssetBundleModule.dll" />
+    <UnityReference Include="UnityEngine.CoreModule.dll" />
+    <UnityReference Include="UnityEngine.IMGUIModule.dll" />
+    <UnityReference Include="UnityEngine.TextRenderingModule.dll" />
+    <UnityReference Include="UnityEngine.UI.dll" />
+    <UnityReference Include="UnityEngine.UIElementsModule.dll" />
+    <UnityReference Include="UnityEngine.UIModule.dll" />
+    <UnityReference Include="UnityEngine.PhysicsModule.dll" />
+
+    <UnityReference Include="Unity.TextMeshPro.dll" />
+
+    <Reference Include="@(UnityReference->'$(UnityAssembliesPath)%(Identity)')" Private="False" SpecificVersion="true"/>
+  
+    <Reference Include="$(RefStubPath)Assembly-CSharp.refstub.dll" Private="False" SpecificVersion="true"/>
+  
+  </ItemGroup>
+</Project>

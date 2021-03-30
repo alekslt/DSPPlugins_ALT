@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <PackageIcon Condition=" '$(PackageIcon)' == '' ">$(MSBuildThisFileDirectory)..\ThunderStore\icon.png</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ManifestDependency Include="xiaoye97-BepInEx-5.4.5" />
+
+    <Thunderstore Include="$(PackageIcon)" />
+  </ItemGroup>
+</Project>

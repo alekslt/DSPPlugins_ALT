@@ -1,0 +1,128 @@
+<Project>
+  <UsingTask TaskName="GenerateManifestDependenciesList"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Dependencies ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <Result ParameterType="System.String" Output="true" />
+    </ParameterGroup>
+
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.Text" />
+      <Code Type="Fragment" Language="C#"><![CDATA[
+          var sb = new StringBuilder();
+          sb.Append("[ ");
+
+          if (Dependencies.Length > 0) {
+            foreach (var item in Dependencies) {
+              sb.Append('"');
+              sb.Append(item.ItemSpec);
+              sb.Append('"');
+              sb.Append(',');
+            }
+            sb.Remove(sb.Length - 1, 1);
+          }
+          sb.Append(" ]");
+          
+          Result = sb.ToString();
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  
+  <Target Name="GenerateManifestJson"
+          Inputs="$(MSBuildAllProjects);$(MSBuildProjectDirectory)version.json"
+          Outputs="$(OutputPath)manifest.json">
+    <Error Text="Missing AssemblyName" Condition=" '$(AssemblyName)' == '' "/>
+    <Error Text="Missing Version" Condition=" '$(Version)' == '' "/>
+    <Error Text="Missing RepositoryUrl" Condition=" '$(RepositoryUrl)' == '' "/>
+    <Error Text="Missing Description" Condition=" '$(Description)' == '' "/>
+
+    <ItemGroup>
+      <ManifestDependency Include="@(PluginReference->'%(Author)-%(Identity)-%(PreferredVersion)')" />
+    </ItemGroup>
+
+    <GenerateManifestDependenciesList Dependencies="@(ManifestDependency)">
+      <Output PropertyName="_ManifestDependencies" TaskParameter="Result" />
+    </GenerateManifestDependenciesList>
+
+    <Exec Command="nbgv get-version -v SimpleVersion -p $(MSBuildProjectDirectory)"
+          EchoOff="true"
+          ConsoleToMSBuild="true"
+          WorkingDirectory="$(SolutionDir)">
+      <Output TaskParameter="ConsoleOutput"
+              PropertyName="NerdBankOutput" />
+    </Exec>
+
+    <PropertyGroup>
+      <ManifestJsonFile>$(OutputPath)manifest.json</ManifestJsonFile>
+      <ManifestJsonContent>
+        <![CDATA[
+{
+  "name": "$(AssemblyName)",
+  "version_number": "$(NerdBankOutput)",
+  "website_url": "$(RepositoryUrl)",
+  "description": "$(Description)",
+  "dependencies": $(_ManifestDependencies)
+}
+]]>
+      </ManifestJsonContent>
+    </PropertyGroup>
+    
+    
+    <WriteLinesToFile File="$(ManifestJsonFile)"
+                      Lines="$(ManifestJsonContent)"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+
+    <ItemGroup>
+      <FileWrites Include="$(ManifestJsonFile)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GeneratePublishingZip"
+          DependsOnTargets="GenerateManifestJson"
+          AfterTargets="AfterBuild"
+          Inputs="@(Thunderstore);$(OutputPath)**\*"
+          Outputs="$(PackageOutputPath)$(AssemblyName)-$(AssemblyInformationalVersion).zip"
+          Condition=" '$(Configuration)' == 'Release' ">
+
+    <!-- Validate the output zip is fine -->
+    <FindInList ItemSpecToFind="README.md"
+                List="@(Thunderstore)"
+                CaseSensitive="false">
+      <Output TaskParameter="ItemFound" PropertyName="FoundReadme" />
+    </FindInList>
+
+    <Error Text="Missing README.md in ThunderStore ItemGroup" Condition=" '$(FoundReadme)' == '' " />
+
+    <!-- Generate zip target -->
+    <PropertyGroup>
+      <PackageName>$(Company)-$(AssemblyName)-$(AssemblyInformationalVersion)</PackageName>
+      <PackageDir>$(PackageOutputPath)\$(PackageName)\</PackageDir>
+      <PackageZip>$(PackageOutputPath)\$(PackageName).zip</PackageZip>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageItems Include="@(Thunderstore)" />
+      <_OutputItems Include="$(OutputPath)**\*" />
+      <PackageItems Include="@(_OutputItems)" Condition=" '$(TargetFramework)' != 'net35' "/>
+      <PackageItems Include="@(_OutputItems)" Condition=" '%(Extension)' != '.pdb' AND '$(TargetFramework)' == 'net35' "/>
+    </ItemGroup>
+
+    <!-- Copy the output files into a package dir -->
+    <MakeDir Directories="$(PackageDir)" />
+    <Copy SourceFiles="@(PackageItems)"
+          DestinationFiles="@(PackageItems->'$(PackageDir)%(PackagePath)%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"
+          Retries="5"
+          RetryDelayMilliseconds="200" />
+    
+    <!-- Zip it -->
+    <ZipDirectory DestinationFile="$(PackageZip)"
+                  SourceDirectory="$(PackageDir)"
+                  Overwrite="true" />
+  </Target>
+</Project>

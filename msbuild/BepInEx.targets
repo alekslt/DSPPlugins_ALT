@@ -1,0 +1,148 @@
+<Project>
+  <PropertyGroup>
+    <CompileDependsOn>GeneratePluginVersionInfo;$(CompileDependsOn)</CompileDependsOn>
+    <ResolveAssemblyReferencesDependsOn>ResolveBepInExPluginReferences;$(ResolveAssemblyReferencesDependsOn)</ResolveAssemblyReferencesDependsOn>
+    <PrepareForRunDependsOn>RunPdb2Mdb;$(PrepareForRunDependsOn)</PrepareForRunDependsOn>
+  </PropertyGroup>
+
+  <!-- Generate PluginInfo.cs for the current -->
+  <Target Name="GeneratePluginVersionInfo"
+          Inputs="$(MSBuildAllProjects)"
+          Outputs="$(IntermediateOutputPath)$(MSBuildProjectName).PluginInfo.g.cs">
+    <PropertyGroup>
+      <PluginInfoFile>$(IntermediateOutputPath)$(MSBuildProjectName).PluginInfo.g.cs</PluginInfoFile>
+      <PluginInfoContent>
+        <![CDATA[
+static partial class ThisAssembly
+{
+    public partial class Plugin
+    {
+      public const string Authors = "$(Company)"%3B
+      public const string GUID = "net.toppe.bepinex.dsp" + ".$(AssemblyName)"%3B
+      public const string Name = "$(AssemblyTitle)"%3B
+      public const string Version = ThisAssembly.AssemblyFileVersion%3B
+    }
+}
+]]>
+      </PluginInfoContent>
+    </PropertyGroup>
+
+    <WriteLinesToFile File="$(PluginInfoFile)"
+                      Lines="$(PluginInfoContent)"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+
+    <ItemGroup>
+      <Compile Remove="$(PluginInfoFile)" />
+      <Compile Include="$(PluginInfoFile)" />
+      
+      <FileWrites Include="$(PluginInfoFile)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Resolves plugin assemblies from actual plugin reference directories -->
+  <UsingTask TaskName="ResolveBepInExPluginAssemblies"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <!-- This should contain game install locations and thunderstore profiles -->
+      <InstalledPlugins ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <PluginAssemblies ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+    </ParameterGroup>
+
+    <Task>      
+      <Using Namespace="System" />
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Reflection" />
+      <Using Namespace="System.Text" />
+      <Using Namespace="Microsoft.Build.Utilities" />
+      <Code Type="Method" Language="C#">
+        <![CDATA[
+        public override bool Execute()
+        {
+          var assemblies = new List<ITaskItem>(InstalledPlugins.Length);
+
+          foreach (var plugin in InstalledPlugins)
+          {
+            var directory = plugin.GetMetadata("InstallDir");
+            int added = 0;
+
+            foreach (var assemblyFile in Directory.EnumerateFiles(directory, "*.dll")) {
+              try {
+                var assemblyName = AssemblyName.GetAssemblyName(assemblyFile);
+              
+                var assembly = new TaskItem(assemblyFile);
+
+                assemblies.Add(assembly);
+                added++;
+                
+                Log.LogMessage("Added assembly '{0}'", assemblyFile);
+              } catch (Exception e) {
+                Log.LogWarning("File could not be processed as an assembly '{0}' {1}", assemblyFile, e);
+              }
+            }
+            
+            if (added == 0) {
+                Log.LogWarning("Did not find any assembly in '{0}'", directory);
+            }
+          }
+          
+          PluginAssemblies = assemblies.ToArray();
+          return true;
+        }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+
+  <!-- This target handles looking up possible variations of Author and Plugin name in the plugins directory -->
+  <Target Name="ResolveBepInExPluginReferences"
+          Returns="@(Reference)"
+          Condition=" '@(PluginReference)' != '' ">
+
+    <ItemGroup Label="Plugin dependency resolution for one level only">
+      <!--
+        Missing support for building a plugin if exists in solution
+        Workaround: ProjectReference ReferenceOutputAssembly=false
+      -->
+
+      <UnresolvedPluginReference Include="@(PluginReference)" Condition=" '%(PluginReference.Assembly)' != '' " />
+
+      <!-- Try resolving from project -->
+      <PluginAssemblyReference Include="@(UnresolvedPluginReference)"
+                               Condition=" '%(Author)' != '' AND Exists('$(PluginsPath)%(Author)-%(Identity)\') ">
+        <InstallDir>$(PluginsPath)%(Author)-%(Identity)\</InstallDir>
+      </PluginAssemblyReference>
+      <UnresolvedPluginReference Remove="@(PluginAssemblyReference)" />
+      
+      <!-- Try resolving from author and plugin -->
+      <PluginAssemblyReference Include="@(UnresolvedPluginReference)"
+                               Condition=" '%(Author)' != '' AND Exists('$(PluginsPath)%(Author)-%(Identity)\') ">
+        <InstallDir>$(PluginsPath)%(Author)-%(Identity)\</InstallDir>
+      </PluginAssemblyReference>
+      <UnresolvedPluginReference Remove="@(PluginAssemblyReference)" />
+
+      <PluginAssemblyReference Include="@(UnresolvedPluginReference)"
+                               Condition=" '%(Author)' == '' AND Exists('$(PluginsPath)%(Identity)\') ">
+        <InstallDir>$(PluginsPath)%(Identity)\</InstallDir>
+      </PluginAssemblyReference>
+      <UnresolvedPluginReference Remove="@(PluginAssemblyReference)" />
+    </ItemGroup>
+    
+    <ResolveBepInExPluginAssemblies InstalledPlugins="@(PluginAssemblyReference)">
+      <Output TaskParameter="PluginAssemblies"
+              ItemName="ResolvedPluginAssemblyReference" />
+    </ResolveBepInExPluginAssemblies>
+
+    <ItemGroup>
+      <!-- TODO: Parse manifest or assembly to get dependency real name or dependencies -->
+      <Reference Include="@(ResolvedPluginAssemblyReference)"
+                     Private="false"
+                     SpecificVersion="true" />
+    </ItemGroup>
+    
+    <Warning Text="Could not resolve plugin reference '%(UnresolvedPluginReference.Identity)' " Condition=" '%(UnresolvedPluginReference.Identity)' != '' " />
+  </Target>
+</Project>
