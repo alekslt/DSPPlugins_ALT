@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Update="C:\Program Files %28x86%29\Steam\steamapps\common\Dyson Sphere Program\BepInEx\core\BepInEx.dll">
+      <Private>true</Private>
+    </Reference>
+    <Reference Update="C:\Program Files %28x86%29\Steam\steamapps\common\Dyson Sphere Program\BepInEx\core\Mono.Cecil.dll">
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

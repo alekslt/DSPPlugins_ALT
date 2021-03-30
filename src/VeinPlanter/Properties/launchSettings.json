@@ -1,0 +1,24 @@
+{
+  "profiles": {
+    "Launch": {
+      "commandName": "Executable",
+      "executablePath": "$(SteamInstallLocation)/steam.exe",
+      "commandLineArgs": "-applaunch $(SteamGameId)",
+      "commandLineArgs_comment": "Running with browser protocol does not work ¯\\_(ツ)_/¯",
+
+      "environmentVariables": {
+        "MONO_DEBUGGER_AGENT": "transport=dt_socket,address=127.0.0.1:56000,defer=y"
+      }
+    },
+    "Launch Debug": {
+      "commandName": "Executable",
+      "executablePath": "$(SteamInstallLocation)/steam.exe",
+      "commandLineArgs": "-applaunch $(SteamGameId)",
+
+      "based_on": "https://www.reddit.com/r/CitiesSkylinesModding/comments/7zaysk/debugging_as_attached_debugger_for_visual_studio/",
+      "environmentVariables": {
+        "MONO_DEBUGGER_AGENT": "transport=dt_socket,address=127.0.0.1:56000,defer=y"
+      }
+    }
+  }
+}

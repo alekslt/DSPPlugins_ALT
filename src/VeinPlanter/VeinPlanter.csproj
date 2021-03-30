@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyTitle>VeinPlanter</AssemblyTitle>
+    <Description>VeinPlanter</Description>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="OrderSavesPlugin.cs" />
+  </ItemGroup>
+  
+  <ItemGroup>    
+    <Thunderstore Include="README.md" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\..\Unity\TestUnityProject\Assets\StreamingAssets\AssetBundles\veinplanter" Link="Resources\veinplanter" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\..\Unity\TestUnityProject\Assets\StreamingAssets\AssetBundles\veinplanterscenes" Link="Resources\veinplanterscenes" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Unity\" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="OrderSavesPlugin.cs" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Reference Include="C:\Dev\RevEng\DysonSphere\Unity\TestUnityProject\Library\ScriptAssemblies\VeinPlanterUI.dll" Private="true" SpecificVersion="true">
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </Reference>
+  </ItemGroup>
+
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="COPY /Y &quot;C:\Dev\RevEng\DysonSphere\Unity\TestUnityProject\Library\ScriptAssemblies\VeinPlanterUI.dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\BepInEx\plugins\DSPPlugins_ALT\&quot;" />
+  </Target>
+</Project>
