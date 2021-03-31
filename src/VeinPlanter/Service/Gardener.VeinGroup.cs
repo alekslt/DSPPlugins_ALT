@@ -197,6 +197,21 @@ namespace VeinPlanter.Service
                 */
             }
 
+            public static int GetProductType(int veinGroupIndex, PlanetData localPlanet)
+            {
+                PlanetData.VeinGroup veinGroup = localPlanet.veinGroups[veinGroupIndex];
+                //Debug.Log("Showing vein Group: " + _veinGardenerState.veinGroupIndex);
+                var prodIdList = (from vein in localPlanet.factory.veinPool where vein.groupIndex == veinGroupIndex select vein.productId);
+                //Debug.Log("prodIdList: " + prodIdList + " count: " + prodIdList.Count());
+                if (prodIdList.Count() == 0)
+                {
+                    return -1;
+                }
+                int prodId = (from vein in localPlanet.factory.veinPool where vein.groupIndex == veinGroupIndex select vein.productId).First();
+
+                return prodId;
+            }
+
             internal static void UpdateVeinAmount(int veinGroupIndex, long value, PlanetData localPlanet)
             {
                 ref PlanetData.VeinGroup veinGroup = ref localPlanet.veinGroups[veinGroupIndex];

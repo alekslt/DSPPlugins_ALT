@@ -37,6 +37,6 @@
 
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="COPY /Y &quot;C:\Dev\RevEng\DysonSphere\Unity\TestUnityProject\Library\ScriptAssemblies\VeinPlanterUI.dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\BepInEx\plugins\DSPPlugins_ALT\&quot;" />
+    <Exec Command="COPY /Y &quot;C:\Dev\RevEng\DysonSphere\Unity\TestUnityProject\Library\ScriptAssemblies\VeinPlanterUI.*&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\BepInEx\plugins\DSPPlugins_ALT\&quot;" />
   </Target>
 </Project>
