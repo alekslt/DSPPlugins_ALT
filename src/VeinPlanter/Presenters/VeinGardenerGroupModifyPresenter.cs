@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using VeinPlanter.Model;
 using VeinPlanter.Service;
 using static VeinPlanter.VeinPlanter;
 
@@ -13,7 +14,7 @@ namespace VeinPlanter.Presenters
     {
         public static GameObject GUIGOVeinGroupModify = null;
         public static UIVeinGardenerGroupEdit UIVGGroupEdit = null;
-        private VeinPlanter.VeinGardenerState _veinGardenerState;
+        private VeinGardenerModel _veinGardenerState;
         private RectTransform ContentParent;
 
         float oilMax = 120f;
@@ -22,7 +23,7 @@ namespace VeinPlanter.Presenters
         bool IsNotValidVGState => (_veinGardenerState.localPlanet == null || _veinGardenerState.localPlanet.factory == null || _veinGardenerState.veinGroupIndex == 0);
 
 
-        public VeinGardenerGroupModifyPresenter(VeinPlanter.VeinGardenerState veinGardenerState)
+        public VeinGardenerGroupModifyPresenter(VeinGardenerModel veinGardenerState)
         {
             _veinGardenerState = veinGardenerState;
         }
@@ -39,7 +40,6 @@ namespace VeinPlanter.Presenters
             UIVGGroupEdit = GUIGOVeinGroupModify.GetComponent<UIVeinGardenerGroupEdit>();
             if (!UIVGGroupEdit.IsInit) UIVGGroupEdit.Init();
 
-            UIVGGroupEdit.Hide();
             //GUIGOVeinGroupModify.SetActive(true);
 
             Debug.Log("Registering callbacks for VG.GroupEdit");
@@ -128,6 +128,8 @@ namespace VeinPlanter.Presenters
                 }
             }
             UIVGGroupEdit.ContentTrans = GUIGOVeinGroupModify.GetComponent<RectTransform>();
+
+            UIVGGroupEdit.Hide();
         }
 
         internal void OnDestroy()
@@ -143,12 +145,7 @@ namespace VeinPlanter.Presenters
         {
             PlanetData.VeinGroup veinGroup = _veinGardenerState.localPlanet.veinGroups[_veinGardenerState.veinGroupIndex];
             Debug.Log("Showing vein Group: " + _veinGardenerState.veinGroupIndex);
-            //var prodIdList = (from vein in _veinGardenerState.localPlanet.factory.veinPool where vein.groupIndex == _veinGardenerState.veinGroupIndex select vein.productId);
-            //Debug.Log("prodIdList: " + prodIdList + " count: " + prodIdList.Count());
-            //int prodId = (from vein in _veinGardenerState.localPlanet.factory.veinPool where vein.groupIndex == _veinGardenerState.veinGroupIndex select vein.productId).First();
-
             int prodId = Gardener.VeinGroup.GetProductType(_veinGardenerState.veinGroupIndex, _veinGardenerState.localPlanet);
-
             var prodIndex = _veinGardenerState.products.FindIndex(p => p == prodId);
 
             UIVGGroupEdit.VeinTypeDropdown.value = (int)veinGroup.type - 1;
@@ -193,28 +190,18 @@ namespace VeinPlanter.Presenters
                 return;
             }
 
-            float realRadius = _veinGardenerState.localPlanet.realRadius;
-            Vector3 localPosition = GameCamera.main.transform.localPosition;
-            Vector3 forward = GameCamera.main.transform.forward;
-
             PlanetData.VeinGroup veinGroup = _veinGardenerState.localPlanet.veinGroups[_veinGardenerState.veinGroupIndex];
-            Vector3 veinGroupWorldPos = veinGroup.pos.normalized * (realRadius + 2.5f);
-            Vector3 cameraVeinGroupDistance = veinGroupWorldPos - localPosition;
-            float magnitude = cameraVeinGroupDistance.magnitude;
-            float num = Vector3.Dot(forward, cameraVeinGroupDistance);
-            if (magnitude < 1f || num < 1f || magnitude > 150)
+            Vector3 veinGroupWorldPos = veinGroup.pos.normalized * (_veinGardenerState.localPlanet.realRadius + 2.5f);
+            Vector3 cameraVeinGroupDistance = veinGroupWorldPos - GameCamera.main.transform.localPosition;
+            float num = Vector3.Dot(GameCamera.main.transform.forward, cameraVeinGroupDistance);
+            if (cameraVeinGroupDistance.magnitude < 1f || num < 1f || cameraVeinGroupDistance.magnitude > 150)
             {
                 Hide();
                 return;
             }
 
-            Vector2 rectPoint;
-            bool flag = UIRoot.ScreenPointIntoRect(GameCamera.main.WorldToScreenPoint(veinGroupWorldPos), ContentParent, out rectPoint);
-            if (Mathf.Abs(rectPoint.x) > 4000f)
-            {
-                Hide();
-            }
-            if (Mathf.Abs(rectPoint.y) > 4000f)
+            bool flag = UIRoot.ScreenPointIntoRect(GameCamera.main.WorldToScreenPoint(veinGroupWorldPos), ContentParent, out Vector2 rectPoint);
+            if (Mathf.Abs(rectPoint.x) > 4000f || Mathf.Abs(rectPoint.y) > 4000f)
             {
                 Hide();
             }

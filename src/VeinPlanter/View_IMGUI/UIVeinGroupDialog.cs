@@ -238,7 +238,7 @@ namespace VeinPlanter
         {
 			if (localPlanet == null || localPlanet.factory == null)
             {
-				VeinPlanter.dialog = null;
+				//VeinPlanter.dialog = null;
 				return;
             }
  			ref PlanetData.VeinGroup veinGroup = ref localPlanet.veinGroups[veinGroupIndex];

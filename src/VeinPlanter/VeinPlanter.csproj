@@ -4,9 +4,6 @@
     <Description>VeinPlanter</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="OrderSavesPlugin.cs" />
-  </ItemGroup>
   
   <ItemGroup>    
     <Thunderstore Include="README.md" />
@@ -14,10 +11,6 @@
   
   <ItemGroup>
     <EmbeddedResource Include="..\..\..\..\Unity\TestUnityProject\Assets\StreamingAssets\AssetBundles\veinplanter" Link="Resources\veinplanter" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <EmbeddedResource Include="..\..\..\..\Unity\TestUnityProject\Assets\StreamingAssets\AssetBundles\veinplanterscenes" Link="Resources\veinplanterscenes" />
   </ItemGroup>
   
   <ItemGroup>
@@ -30,8 +23,8 @@
 
 
   <ItemGroup>
-    <Reference Include="C:\Dev\RevEng\DysonSphere\Unity\TestUnityProject\Library\ScriptAssemblies\VeinPlanterUI.dll" Private="true" SpecificVersion="true">
-      <EmbedInteropTypes>true</EmbedInteropTypes>
+    <Reference Include="C:\Dev\RevEng\DysonSphere\Unity\TestUnityProject\Library\ScriptAssemblies\VeinPlanterUI.dll" Private="false" SpecificVersion="true">
+      <EmbedInteropTypes>false</EmbedInteropTypes>
     </Reference>
   </ItemGroup>
 

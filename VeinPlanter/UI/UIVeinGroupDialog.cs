@@ -16,9 +16,19 @@ namespace VeinPlanter
         private static Rect winRect = new Rect(0, 0, 450, 450);
 		public Boolean Show { get; set; } = false;
 
-		// private static GUISkin customSkin = null;
+        public static int UILayoutHeight { get; set; } = 1080;
 
-		public DropDownGUILayout<UIVeinGroupDialogListItem> dropdown = new DropDownGUILayout<UIVeinGroupDialogListItem>();
+        public static int ScaledScreenWidth { get; set; } = 1920;
+        public static int ScaledScreenHeight { get; set; } = 1080;
+
+        public static float ScaleRatio { get; set; } = 1.0f;
+
+        const float FixedSizeAdjustOriginal = 0.5f;
+        public static float FixedSizeAdjust { get; set; } = FixedSizeAdjustOriginal;
+
+        // private static GUISkin customSkin = null;
+
+        public DropDownGUILayout<UIVeinGroupDialogListItem> dropdown = new DropDownGUILayout<UIVeinGroupDialogListItem>();
 		public DropDownGUILayout<UIVeinGroupDialogListItem> dropdownItems = new DropDownGUILayout<UIVeinGroupDialogListItem>();
 
 		public PlanetData localPlanet { get; set; }
@@ -73,7 +83,22 @@ namespace VeinPlanter
 
 		}
 
-		public void UpdatePos()
+        public static void AutoResize(int designScreenHeight, bool applyCustomScale = true)
+        {
+            if (applyCustomScale)
+            {
+                designScreenHeight = (int)Math.Round((float)designScreenHeight / FixedSizeAdjust);
+            }
+
+            ScaledScreenHeight = designScreenHeight;
+            ScaleRatio = (float)Screen.height / designScreenHeight;
+
+            // Vector2 resizeRatio = new Vector2((float)Screen.width / screenWidth, (float)Screen.height / screenHeight);
+            ScaledScreenWidth = (int)Math.Round(Screen.width / ScaleRatio);
+            UnityEngine.GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(ScaleRatio, ScaleRatio, 1.0f));
+        }
+
+        public void UpdatePos()
         {
 			float realRadius = localPlanet.realRadius;
 			Vector3 localPosition = GameCamera.main.transform.localPosition;
@@ -84,12 +109,12 @@ namespace VeinPlanter
 			Vector3 cameraVeinGroupDistance = veinGroupWorldPos - localPosition;
 			float magnitude = cameraVeinGroupDistance.magnitude;
 			float num = Vector3.Dot(forward, cameraVeinGroupDistance);
-			if (magnitude < 1f || num < 1f)
+			if (magnitude < 1f || num < 1f || magnitude > 150)
 			{
 				Show = false;
 				return;
 			}
-
+            
 			Vector3 screenPoint = GameCamera.main.WorldToScreenPoint(veinGroupWorldPos);
 			// Debug.Log("Screenpoint: " + screenPoint);
 
@@ -98,7 +123,8 @@ namespace VeinPlanter
 			screenPoint.y = Screen.height - screenPoint.y;
 
 			bool flag = true;
-			if (Mathf.Abs(screenPoint.x) > 8000f || Mathf.Abs(screenPoint.y) > 8000f)
+			if (Mathf.Abs(screenPoint.x) > Screen.width || Mathf.Abs(screenPoint.y) > Screen.height ||
+                screenPoint.x < -100 || screenPoint.y < -100)
 			{
 				flag = false;
 			}
@@ -122,8 +148,12 @@ namespace VeinPlanter
 			}
 
 			winRect.x = Mathf.Max(0, winRect.x);
-			winRect.y = Mathf.Max(0, winRect.y);			
-		}
+			winRect.y = Mathf.Max(0, winRect.y);
+
+            winRect.x /= ScaleRatio;
+            winRect.y /= ScaleRatio;
+
+        }
 
 		public void Init()
         {
@@ -191,9 +221,11 @@ namespace VeinPlanter
 			if (!isInit && GameMain.isRunning) { Init(); }
 
 
-			//windowStyle.contentOffset = new Vector2(0, 0);
+            AutoResize(DSPGame.globalOption.uiLayoutHeight, applyCustomScale: false);
 
-			if (Show)
+            //windowStyle.contentOffset = new Vector2(0, 0);
+
+            if (Show)
 			{
 				winRect = GUILayout.Window(55416755, winRect, WindowFunc, "", windowStyle);
 				UIHelper.EatInputInRect(winRect);
@@ -264,17 +296,21 @@ namespace VeinPlanter
 				GUILayout.Label("Amount " + currentValue.ToString("n2"));
 			} else
             {
+                
 				//maxAmount = 1000000f * 100;
 				maxAmount = 10;
 				largeMax = GUILayout.Toggle(largeMax, "Large Max");
 				if (largeMax)
 				{
-					//maxAmount = 20000000000f;
-					maxAmount = 21000;
-				}
+                    //maxAmount = 20000000000f;
+                    //maxAmount = 21 000;
+                    maxAmount = Math.Min(((long)int.MaxValue - 22845704) * oreMultiplier * veinGroup.count, 25000);
+
+                }
 				currentValue *= oreMultiplier;
 				GUILayout.Label("Amount " + veinGroup.amount.ToString("n0"));
-			}
+                //GUILayout.Label("MaxAmount " + maxAmount.ToString("n0"));
+            }
 
 			
 

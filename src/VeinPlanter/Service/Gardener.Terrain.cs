@@ -8,6 +8,65 @@ namespace VeinPlanter.Service
 {
     static class PlantetFactoryExtensions
     {
+        public static int ReformSnap(Vector3 pos, int reformSize, int reformType, int reformColor, Vector3[] reformPoints, int[] reformIndices, PlatformSystem platform, out Vector3 reformCenter, float localPlanetRadius)
+        {
+            int num = VeinPlanter.instance.veinGardenerState.localPlanet.aux.mainGrid.ReformSnapTo(pos, reformSize, reformType, reformColor, reformPoints, reformIndices, platform, out reformCenter);
+            float num2 = localPlanetRadius - 50.2f;
+            for (int i = 0; i < num; i++)
+            {
+                reformPoints[i].x *= num2;
+                reformPoints[i].y *= num2;
+                reformPoints[i].z *= num2;
+            }
+            reformCenter *= num2;
+            return num;
+        }
+
+        private static void TerrainLower(Vector3 worldPos)
+        {
+            PlayerAction_Build playerAction_Build = GameMain.mainPlayer?.controller.actionBuild;
+
+            if (VFInput.alt && playerAction_Build != null)
+            {
+                var reformSize = 1;
+                var reformType = -1;
+                var reformColor = -1;
+
+                bool veinBuried = false;
+                float radius = 0.990945935f * (float)reformSize;
+                Vector3 reformCenterPoint;
+
+                float localPlanetRadius = VeinPlanter.instance.veinGardenerState.localPlanet.radius;
+                float localPlanetRealRadius = VeinPlanter.instance.veinGardenerState.localPlanet.realRadius;
+
+                Debug.Log("TerrainLower Radius: " + localPlanetRadius + " RealRadius: " + localPlanetRealRadius + " Levelized: " + VeinPlanter.instance.veinGardenerState.localPlanet.levelized);
+
+                localPlanetRadius -= 5;
+                localPlanetRealRadius -= 5;
+
+                if (VeinPlanter.instance.veinGardenerState.localPlanet.factory.platformSystem.reformData == null)
+                {
+                    Debug.Log("InitReformData");
+                    VeinPlanter.instance.veinGardenerState.localPlanet.factory.platformSystem.InitReformData();
+                }
+                Debug.Log("ReformSnap: " + VeinPlanter.instance.veinGardenerState.localPlanet.aux);
+                /*
+                playerAction_Build.reformPointsCount = localPlanet.aux.ReformSnap(worldPos, reformSize, reformType, reformColor,
+                    reformPoints, playerAction_Build.reformIndices, localPlanet.factory.platformSystem, out reformCenterPoint);*/
+                ReformSnap(worldPos, reformSize, reformType, reformColor, VeinPlanter.instance.veinGardenerState.reformPoints, playerAction_Build.reformIndices, VeinPlanter.instance.veinGardenerState.localPlanet.factory.platformSystem, out reformCenterPoint, localPlanetRadius);
+
+                Debug.Log("reformPointsCount: " + playerAction_Build.reformPointsCount);
+
+                Debug.Log("ComputeFlattenTerrainReform");
+                var compFlatten = VeinPlanter.instance.veinGardenerState.localPlanet.factory.ComputeFlattenTerrainReformALT(playerAction_Build.reformPoints, worldPos, radius, playerAction_Build.reformPointsCount, localPlanetRealRadius, fade0: 3f, fade1: 1f);
+
+                Debug.Log("FlattenTerrainReform");
+                VeinPlanter.instance.veinGardenerState.localPlanet.factory.FlattenTerrainReformALT(reformCenterPoint, radius, reformSize, veinBuried, localPlanetRadius, localPlanetRealRadius);
+                UIRealtimeTip.Popup("Flatten: " + compFlatten);
+            }
+
+        }
+
         public static int ComputeFlattenTerrainReformALT(this PlanetFactory planetFactory, Vector3[] points, Vector3 center, float radius, int pointsCount, float realRadius,
             float fade0 = 3f, float fade1 = 1f)
         {

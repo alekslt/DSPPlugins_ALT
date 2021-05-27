@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using VeinPlanter.Model;
 using VeinPlanter.Service;
 using static VeinPlanter.VeinPlanter;
 
@@ -13,9 +14,9 @@ namespace VeinPlanter.Presenters
     {
         public static GameObject GUIGOModeSelect = null;
         public static UIVeinGardenerMode UIVGMode = null;
-        private VeinPlanter.VeinGardenerState _veinGardenerState;
+        private VeinGardenerModel _veinGardenerState;
 
-        public VeinGardenerModePresenter(VeinPlanter.VeinGardenerState veinGardenerState)
+        public VeinGardenerModePresenter(VeinGardenerModel veinGardenerState)
         {
             _veinGardenerState = veinGardenerState;
         }
@@ -32,16 +33,16 @@ namespace VeinPlanter.Presenters
             if (!UIVGMode.IsInit) UIVGMode.Init();
 
             Debug.Log("Registering callbacks for VG.Mode");
-            UIVGMode.UIOnCreateNewVeinGroup = () => { _veinGardenerState.ChangeMode(eVeinModificationMode.AddVeinGroup); Hide(); };
-            UIVGMode.UIOnDeleteVein = () => { _veinGardenerState.ChangeMode(eVeinModificationMode.RemoveVein); Hide(); };
-            UIVGMode.UIOnDeleteVeinGroup = () => { _veinGardenerState.ChangeMode(eVeinModificationMode.RemoveVeinGroup); Hide(); };
-            UIVGMode.UIOnExtendVeinGroup = () => { _veinGardenerState.ChangeMode(eVeinModificationMode.ExtendVein); Hide(); };
-            UIVGMode.UIOnModifyVeinGroup = () => { _veinGardenerState.ChangeMode(eVeinModificationMode.ModifyVeinGroup); Hide(); };
-            UIVGMode.UIOnWorldEditShowAll = () => { _veinGardenerState.ChangeMode(eVeinModificationMode.PlanetVeins); Hide(); };
+            UIVGMode.UIOnCreateNewVeinGroup = () => { _veinGardenerState.ChangeMode(EVeinModificationMode.AddVeinGroup); Hide(); };
+            UIVGMode.UIOnDeleteVein = () => { _veinGardenerState.ChangeMode(EVeinModificationMode.RemoveVein); Hide(); };
+            UIVGMode.UIOnDeleteVeinGroup = () => { _veinGardenerState.ChangeMode(EVeinModificationMode.RemoveVeinGroup); Hide(); };
+            UIVGMode.UIOnExtendVeinGroup = () => { _veinGardenerState.ChangeMode(EVeinModificationMode.ExtendVein); Hide(); };
+            UIVGMode.UIOnModifyVeinGroup = () => { _veinGardenerState.ChangeMode(EVeinModificationMode.ModifyVeinGroup); Hide(); };
+            UIVGMode.UIOnWorldEditShowAll = () => { _veinGardenerState.ChangeMode(EVeinModificationMode.PlanetVeins); Hide(); };
 
             UIVGMode.UIOnCreateNewVeinGroupTypeChanged = newValue => { _veinGardenerState.newVeinGroupType = (EVeinType)(newValue + 1); };
 
-            UIVGMode.UIOnClose = () => { _veinGardenerState.ChangeMode(eVeinModificationMode.Deactivated); Hide(); };
+            UIVGMode.UIOnClose = () => { _veinGardenerState.ChangeMode(EVeinModificationMode.Deactivated); Hide(); };
 
             Debug.Log("Populating UIVGGroupEdit.VeinTypeDropdown");
             UIVGMode.VeinTypeDropdown.ClearOptions();
@@ -59,6 +60,7 @@ namespace VeinPlanter.Presenters
                     UIVGMode.VeinTypeDropdown.options.Add(new UnityEngine.UI.Dropdown.OptionData() { image = itemProto.iconSprite, text = itemProto.name.Translate() });
                 }
             }
+            Hide();
         }
 
         internal void OnDestroy()
@@ -77,13 +79,13 @@ namespace VeinPlanter.Presenters
 
         public void Show()
         {
-            VeinGardenerState.ShowModeMenu = true;
+            VeinGardenerModel.ShowModeMenu = true;
             UIVGMode.Show();
         }
 
         public void Hide()
         {
-            VeinGardenerState.ShowModeMenu = false;
+            VeinGardenerModel.ShowModeMenu = false;
             UIVGMode.Hide();
         }
 
@@ -111,7 +113,7 @@ namespace VeinPlanter.Presenters
 
                     switch (_veinGardenerState.modMode)
                     {
-                        case eVeinModificationMode.AddVeinGroup:
+                        case EVeinModificationMode.AddVeinGroup:
                             //if (closestVeinGroupIndex < 0)
                             {
                                 var veinGroup = Gardener.VeinGroup.New(_veinGardenerState.newVeinGroupType, worldPos.normalized);
@@ -121,25 +123,27 @@ namespace VeinPlanter.Presenters
                             }
                             Gardener.Vein.Add(_veinGardenerState.localPlanet, worldPos, closestVeinGroupIndex);
                             break;
-                        case eVeinModificationMode.ExtendVein:
+                        case EVeinModificationMode.ExtendVein:
                             if (closestVeinDistance2D > 40)
                             {
                                 Debug.Log("Not Extending veinGroup.index: " + _veinGardenerState.veinGroupIndex + ". Distance from vein group too large: " + closestVeinDistance2D);
                             }
                             Gardener.Vein.Add(_veinGardenerState.localPlanet, worldPos, _veinGardenerState.veinGroupIndex);
                             break;
-                        case eVeinModificationMode.ModifyVeinGroup:
+                        case EVeinModificationMode.ModifyVeinGroup:
                             if (closestVeinGroupIndex >= 0)
                             {
                                 PlanetData.VeinGroup veinGroup = _veinGardenerState.localPlanet.veinGroups[closestVeinGroupIndex];
                                 Debug.Log("Clicked on veinGroup: " + veinGroup.ToString() + " index: " + closestVeinGroupIndex + " Type: " + veinGroup.type);
                                 Debug.Log("VeinGroup: " + veinGroup.pos.ToString() + " index: " + (veinGroup.pos * (_veinGardenerState.localPlanet.realRadius + 2.5f)));
 
+                                /*
                                 dialog = new UIVeinGroupDialog() {
                                     localPlanet = _veinGardenerState.localPlanet,
                                     veinGroupIndex = closestVeinGroupIndex,
                                     Show = true
                                 };
+                                */
                                 _veinGardenerState.veinGroupIndex = closestVeinGroupIndex;
                                 VeinPlanter.instance.veinGroupModifyPresenter.Show();
                             }
@@ -148,7 +152,7 @@ namespace VeinPlanter.Presenters
                                 VeinPlanter.instance.veinGroupModifyPresenter.Hide();
                             }
                             break;
-                        case eVeinModificationMode.RemoveVein:
+                        case EVeinModificationMode.RemoveVein:
                             if (closestVeinGroupIndex >= 0 && closestVeinIndex >= 0 && closestVeinDistance2D < 1)
                             {
                                 Debug.Log("Removing vein: " + closestVeinIndex + " in group: " + closestVeinGroupIndex);
@@ -158,11 +162,11 @@ namespace VeinPlanter.Presenters
                             break;
 
 
-                        case eVeinModificationMode.TerrainLower:
+                        case EVeinModificationMode.TerrainLower:
                             //TerrainLower(worldPos);
                             break;
 
-                        case eVeinModificationMode.Deactivated:
+                        case EVeinModificationMode.Deactivated:
                         default:
                             break;
                     }

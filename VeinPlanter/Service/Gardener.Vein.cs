@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 
 namespace VeinPlanter.Service
 {
@@ -28,13 +29,22 @@ namespace VeinPlanter.Service
                 vein.type = veinGroup.type;
                 vein.groupIndex = (short)veinGroupIndex;
                 vein.modelIndex = (short)random.Next(PlanetModelingManager.veinModelIndexs[veinTypeIndex], PlanetModelingManager.veinModelIndexs[veinTypeIndex] + PlanetModelingManager.veinModelCounts[veinTypeIndex]);
-                vein.amount = 100;
-                vein.productId = PlanetModelingManager.veinProducts[veinTypeIndex];
+                
                 vein.pos = worldPos;
                 vein.minerCount = 0;
                 vein.colliderId = 0;
 
-                vein.amount = Mathf.RoundToInt(vein.amount * DSPGame.GameDesc.resourceMultiplier);
+                if (veinGroup.count > 0)
+                {
+                    VeinData siblingvein = (from pVein in localPlanet.factory.veinPool where pVein.groupIndex == veinGroupIndex select vein).First();
+                    vein.productId = siblingvein.productId;
+                    vein.amount = siblingvein.amount;
+
+                } else
+                {
+                    vein.productId = PlanetModelingManager.veinProducts[veinTypeIndex];
+                    vein.amount = Mathf.RoundToInt(1000000 * DSPGame.GameDesc.resourceMultiplier);
+                }               
 
                 veinGroup.count++;
                 veinGroup.amount += vein.amount;

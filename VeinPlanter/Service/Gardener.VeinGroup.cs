@@ -203,6 +203,8 @@ namespace VeinPlanter.Service
                 veinGroup.amount = (long)value;
                 int newAvg = (int)(value / veinGroup.count);
 
+                //Debug.Log("Setting new veinAmount for veingroup: " + veinGroupIndex + ", new total: " + value + ", count: " + veinGroup.count + ", individual: " + newAvg);
+
                 for (int i = 1; i < localPlanet.factory.veinCursor; i++)
                 {
                     ref VeinData vein = ref localPlanet.factory.veinPool[i];
