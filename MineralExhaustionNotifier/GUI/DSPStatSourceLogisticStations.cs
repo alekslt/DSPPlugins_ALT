@@ -261,9 +261,7 @@ namespace DSPPlugins_ALT.GUI
                 GUILayout.Label($"{DSPHelper.PositionToLatLon(station.station.stationPosition)}", UITheme.TextAlignStyle, UITheme.LocationColWidth);
                 GUILayout.EndVertical();
 
-
-
-                GUILayout.Label($"Planet: {station.station.planetData.name.Translate()}", UITheme.TextAlignStyle, GUILayout.Width(0.96f * MaxWidth));
+                GUILayout.Label($"Planet: {station.station.planetData.displayName.Translate()}", UITheme.TextAlignStyle, GUILayout.Width(0.96f * MaxWidth));
                 GUILayout.Label($"Amount: {station.product.item.count}/{station.product.item.max}", UITheme.TextAlignStyle, GUILayout.Width(0.86f * MaxWidth));
 
                 GUILayout.BeginHorizontal(GUILayout.Width(1.0f * MaxWidth), GUILayout.MaxWidth(1.0f * MaxWidth));
@@ -294,7 +292,7 @@ namespace DSPPlugins_ALT.GUI
 
                     GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
                     DrawCollapsedChildrenChevron(myPlanetId, out bool childrenCollapsed);
-                    GUILayout.Label($"<b>Planet {stationsPlanetGroup.planet.name.Translate() }</b>", UITheme.TextAlignStyle, GUILayout.Width(170));
+                    GUILayout.Label($"<b>Planet {stationsPlanetGroup.planet.displayName.Translate() }</b>", UITheme.TextAlignStyle, GUILayout.Width(170));
                     GUILayout.EndHorizontal();
 
                     if (!childrenCollapsed)
@@ -385,7 +383,7 @@ namespace DSPPlugins_ALT.GUI
                                 var logTypeByResourceId = myId + "." + pres.name;
 
                                 var stationsByPlanetByResource = pres.stations
-                                    .GroupBy(m => m.station.planetData.name.Translate()).OrderBy(g => g.Key)
+                                    .GroupBy(m => m.station.planetData.displayName.Translate()).OrderBy(g => g.Key)
                                     .Select(mtg => new { Name = mtg.Key, Stations = mtg.ToList()});
 
                                 GUILayout.BeginHorizontal(UnityEngine.GUI.skin.box);
