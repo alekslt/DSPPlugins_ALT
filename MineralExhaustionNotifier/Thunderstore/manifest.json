@@ -1,9 +1,9 @@
 ﻿{
     "name": "MineralExhaustionNotifier",
-    "version_number": "0.5.2",
+    "version_number": "0.5.3",
     "website_url": "https://github.com/alekslt/DSPPlugins_ALT/tree/master/MineralExhaustionNotifier",
     "description": "Statistics on miners, logistic stations, and their items. Allow you to track problem conditions and shows you a information window with location, problem, and more.",
     "dependencies": [
-        "xiaoye97-BepInEx-5.4.5"
+        "xiaoye97-BepInEx-5.4.17"
     ]
 }

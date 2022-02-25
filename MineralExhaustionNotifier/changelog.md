@@ -1,4 +1,29 @@
-﻿
+﻿## MineralExhaustionNotifier v0.5.3
+
+* Show custom planet names. Contribution from Enrique Ramirez
+* Fix for new big update of DSP. 0.9.24.11286. Contribution from dgschrei
+* Added auto collapsed mode for miners and logistic stations (helps a lot performance wise with large amount of miners/stations)
+* Internal code restructuring.
+
+### Commit log from 'v0.5.2' to 'v0.5.3' (most recent changes are listed on top):
+
+a20fd2f Move show/hide GUI behind member functions and not a static toggle to allow me to run initialization code on switches.
+b638c5a Turn auto update on by default as ICBA to optimize the initialization path for the sources.
+8a26ab5 Update target framework to modern/netstandard and set font size explicitly as new defaulty unity one is too big. Add code for script engine hot reload.
+b5fd67e WIP for MineralExhaustionNotifier 5.2.3. fix for new release of DSP
+51f404f Merge pull request #8 from dgschrei/masterchange uiGame.dysonmap to uiGame.dysonEditor
+8c996aa Merge pull request #7 from enriquein/masterShow custom planet names in Logistic Stations view.
+3e38437 change uiGame.dysonmap to uiGame.dysonEditor
+8a4a1bf Show custom planet names in Logistic Stations view.
+89fb1c9 MineralExhaustionNotifier: Fixed style for open/close group symbol. Added showing text on the filter.
+04813ec Veinplanter: Attempt of specific version (just gonna base the project structure on therzoks structure instead. Added planetvein-dialogtest. and use the refstub assembly-csharp-module to access private.
+c5d2989 Add additional grouped levels for miners and logistic stations.
+e3cc38c Introduce multiple default collapsed state levels. 1-3.
+4c54280 Fix Auto Update Toggle (Earlier always updated since it was bound to the collection)
+6fcd561 Fix the filter for collectors
+fd757a6 Added auto collapsed mode for miners and logistic stations (helps a lot performance wise with large amount of miners/stations)
+
+
 ## MineralExhaustionNotifier v0.5.2
 
 * As some had grown used to the smaller window size with high resolution/pixel densities the scaling code is reworked to base itself on the games UI Layout Reference Height adjustment.

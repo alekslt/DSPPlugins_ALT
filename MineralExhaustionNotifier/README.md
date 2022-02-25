@@ -35,6 +35,13 @@ If a miner is detected with this condition the toggle button (M) on lower right 
 
 ## Changes in last release
 
+### MineralExhaustionNotifier v0.5.3
+
+* Show custom planet names. Contribution from Enrique Ramirez
+* Fix for new big update of DSP. 0.9.24.11286. Contribution from dgschrei
+* Added auto collapsed mode for miners and logistic stations (helps a lot performance wise with large amount of miners/stations)
+* Internal code restructuring.
+
 ### MineralExhaustionNotifier v0.5.2
 
 * As some had grown used to the smaller window size with high resolution/pixel densities the scaling code is reworked to base itself on the games UI Layout Reference Height adjustment.
@@ -58,6 +65,7 @@ If a miner is detected with this condition the toggle button (M) on lower right 
 
 ## Verified working with game versions
 
+* Dyson Sphere Project 0.9.24.11286
 * Dyson Sphere Project 0.6.16.5780
 * Dyson Sphere Project 0.6.16.5759
 * Dyson Sphere Project 0.6.15.5706
