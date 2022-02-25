@@ -1,11 +1,11 @@
-﻿## MineralExhaustionNotifier v0.5.3
+﻿## MineralExhaustionNotifier v0.5.4
 
 * Show custom planet names. Contribution from Enrique Ramirez
 * Fix for new big update of DSP. 0.9.24.11286. Contribution from dgschrei
 * Added auto collapsed mode for miners and logistic stations (helps a lot performance wise with large amount of miners/stations)
 * Internal code restructuring.
 
-### Commit log from 'v0.5.2' to 'v0.5.3' (most recent changes are listed on top):
+### Commit log from 'v0.5.2' to 'v0.5.4' (most recent changes are listed on top):
 
 a20fd2f Move show/hide GUI behind member functions and not a static toggle to allow me to run initialization code on switches.
 b638c5a Turn auto update on by default as ICBA to optimize the initialization path for the sources.
@@ -16,7 +16,6 @@ b5fd67e WIP for MineralExhaustionNotifier 5.2.3. fix for new release of DSP
 3e38437 change uiGame.dysonmap to uiGame.dysonEditor
 8a4a1bf Show custom planet names in Logistic Stations view.
 89fb1c9 MineralExhaustionNotifier: Fixed style for open/close group symbol. Added showing text on the filter.
-04813ec Veinplanter: Attempt of specific version (just gonna base the project structure on therzoks structure instead. Added planetvein-dialogtest. and use the refstub assembly-csharp-module to access private.
 c5d2989 Add additional grouped levels for miners and logistic stations.
 e3cc38c Introduce multiple default collapsed state levels. 1-3.
 4c54280 Fix Auto Update Toggle (Earlier always updated since it was bound to the collection)

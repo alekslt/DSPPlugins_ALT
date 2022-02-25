@@ -35,7 +35,7 @@ If a miner is detected with this condition the toggle button (M) on lower right 
 
 ## Changes in last release
 
-### MineralExhaustionNotifier v0.5.3
+### MineralExhaustionNotifier v0.5.4
 
 * Show custom planet names. Contribution from Enrique Ramirez
 * Fix for new big update of DSP. 0.9.24.11286. Contribution from dgschrei
