@@ -73,6 +73,9 @@ namespace DSPPlugins_ALT
             UnityEngine.Debug.Log("Mineral Vein Exhaustion Plugin Loaded!");
             harmony = new Harmony(VersionInfo.BEPINEX_FQDN_ID);
             harmony.PatchAll();
+
+            //minerNotificationUI.ShowGUI();
+            //GUI.MinerNotificationUI.Show = true;
         }
 
         internal void OnDestroy()
@@ -104,12 +107,22 @@ namespace DSPPlugins_ALT
                     minerStatistics.triggerNotification = false;
                     minerStatistics.firstTimeNotification = false;
                     minerStatistics.lastTriggeredNotification = GameMain.instance.timei;
-                    GUI.MinerNotificationUI.Show = true;
+
+                    minerNotificationUI.ShowGUI();
+                    //GUI.MinerNotificationUI.Show = true;
                 }
             }
 
             if (keyModifierAltIsDown && Input.GetKeyDown(ShowNotificationWindowHotKey.Value)) {
-                GUI.MinerNotificationUI.Show = !GUI.MinerNotificationUI.Show;
+                if (minerNotificationUI.Show)
+                {
+                    minerNotificationUI.HideGUI();
+                } else
+                {
+                    minerNotificationUI.ShowGUI();
+                }
+                //minerNotificationUI.Show = !minerNotificationUI.Show;
+                //GUI.MinerNotificationUI.Show = !GUI.MinerNotificationUI.Show;
             }
         }
 

@@ -22,7 +22,7 @@ namespace DSPPlugins_ALT.GUI
 
         public static bool HighlightButton = false;
         public static bool ShowButton = true;
-        public static bool Show;
+        public bool Show;
         private static Rect winRect = new Rect(0, 0, 1015, 650); // 680
 
         public static int UILayoutHeight { get; set; } = 1080;
@@ -47,6 +47,29 @@ namespace DSPPlugins_ALT.GUI
         {
             this.minerStatistics = minerStatistics;
             minerStatistics.onStatSourcesUpdated += MinerStatistics_onStatSourcesUpdated;
+        }
+
+
+        public void ShowGUI()
+        {
+            foreach (var source in DSPStatSources)
+            {
+                var orig = source.Value.ShouldAutoUpdate;
+
+                source.Value.ShouldAutoUpdate = true;
+                source.Value.UpdateSource();
+                source.Value.ShouldAutoUpdate = false;
+                source.Value.UpdateSource();
+
+                source.Value.ShouldAutoUpdate = orig;
+            }
+            
+            Show = true;
+        }
+
+        public void HideGUI()
+        {
+            Show = false;
         }
 
         private void MinerStatistics_onStatSourcesUpdated(long obj)
@@ -227,7 +250,9 @@ namespace DSPPlugins_ALT.GUI
             if (shouldUpdate)
             {
                 DSPStatSources[selectedTabSourceType].CollapsedState.Clear();
+                DSPStatSources[selectedTabSourceType].UpdateSource();
             }
+
             GUILayout.EndVertical();
  
             GUILayout.EndHorizontal();
