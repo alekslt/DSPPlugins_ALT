@@ -18,7 +18,7 @@ namespace DSPPlugins_ALT.GUI
         public abstract void DrawFilterGUI(eTAB_TYPES selectedTab);
         public abstract void DrawTabGUI(eTAB_TYPES selectedTab);
 
-        public bool ShouldAutoUpdate { get; set; } = false;
+        public bool ShouldAutoUpdate { get; set; } = true;
 
         /*
         public bool DefaultIsChildrenCollapsedStateLevel1 { get; set; } = false;
