@@ -33,6 +33,8 @@ namespace DSPPlugins_ALT
 
         public static MineralExhaustionNotifier instance;
 
+        private static Harmony harmony;
+
         void InitConfig()
         {
             CheckPeriodSeconds = Config.Bind("General", "CheckPeriodSeconds", 5, "How often to check for miner problems");
@@ -69,9 +71,18 @@ namespace DSPPlugins_ALT
             ApplyConfig();
 
             UnityEngine.Debug.Log("Mineral Vein Exhaustion Plugin Loaded!");
-            var harmony = new Harmony(VersionInfo.BEPINEX_FQDN_ID);
+            harmony = new Harmony(VersionInfo.BEPINEX_FQDN_ID);
             harmony.PatchAll();
         }
+
+        internal void OnDestroy()
+        {
+            // For ScriptEngine hot-reloading
+            //if (bundleScenes != null) bundleScenes.Unload(true);
+            //if (bundleAssets != null) bundleAssets.Unload(true);
+            if (harmony != null) harmony.UnpatchSelf();
+        }
+
 
         bool keyModifierAltIsDown = false;
 

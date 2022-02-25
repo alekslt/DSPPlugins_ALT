@@ -82,6 +82,7 @@ namespace DSPPlugins_ALT.GUI
 
             TextAlignStyle = new GUIStyle(UnityEngine.GUI.skin.label);
             TextAlignStyle.alignment = TextAnchor.MiddleLeft;
+            TextAlignStyle.fontSize = 13;
 
             MenuButtonStyle = new GUIStyle(UnityEngine.GUI.skin.button);
             MenuButtonStyle.padding.left = 10;
